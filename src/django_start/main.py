@@ -1,7 +1,7 @@
 import os
 import sys
-from django_start import DjangoStart
-from update_files import UpdateFile
+from .django_start import DjangoStart
+from .update_files import UpdateFile
 import time
 
 
@@ -9,7 +9,7 @@ def start():
     return os.getcwd(), sys.argv
 
 
-if __name__ == "__main__":
+def run():
     workdir, arguments = start()
     data = {}
     try:
@@ -18,16 +18,12 @@ if __name__ == "__main__":
     except IndexError:
         print('Enter valid command < core_name app_name >')
         sys.exit(1)
-
     app = DjangoStart(
         workdir=workdir,
         **data
     )
     filemanager = UpdateFile(workdir=workdir, **data)
 
-    print('Create Environment ✨')
-    time.sleep(0.3)
-    app.create_env()
     print('Install Django ⬇')
     time.sleep(0.3)
     app.install_dep()

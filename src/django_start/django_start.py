@@ -1,5 +1,5 @@
 import os
-from virtualenv.virtualenv import VirtualEnv
+from .virtualenv.virtualenv import VirtualEnv
 
 
 class DjangoStart:
