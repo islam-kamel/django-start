@@ -24,3 +24,7 @@ also creates the index.html
 ![img.png](assest/img_4.png)
 
 ## Welcome to contribute ❤
+
+```shell
+pip install pyinstaller | pyinstaller --noconfirm --onefile --console --add-data "./src;src/" django-start.py
+```
