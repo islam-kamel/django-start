@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rest-start-islam.kamel"
-version = "1.0.0"
+name = "Django-start-islam.kamel"
+version = "0.1.0"
 authors = [
   { name="Islam Kamel", email="islam.kamel@agr.svu.edu" },
 ]
@@ -19,5 +19,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/islam-kamel/rest-start"
-"Bug Tracker" = "https://github.com/islam-kamel/rest-start/issues"
+"Homepage" = "https://github.com/islam-kamel/django-start"
+"Bug Tracker" = "https://github.com/islam-kamel/django-start/issues"

@@ -60,10 +60,11 @@ class DjangoStart:
                 '<html lang="en">\n',
                 '<head>\n',
                 '\t<meta charset="UTF-8">\n',
-                '\t<title>Hello,Start</title>\n',
+                '\t<title>Hello, Django-Start</title>\n',
                 '</head>\n',
                 '<body>\n',
-                '\t<h1 style="text-align: center"> Hello,Start</h1>\n',
+                '\t<h1 style="text-align: center"> Hello, Django-Start</h1>\n',
+                '\t<a href="https://github.com/islam-kamel/django-start"><h1 style="text-align: center">Project</h1></a>\n',
                 '</body>\n</html>'
             ]
             f.write(''.join(content))

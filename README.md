@@ -1,1 +1,1 @@
-# rest-start
+# Django Start Automate
