@@ -1,1 +1,1 @@
-from .rest_start import RestStart
+from .django_start import DjangoStart

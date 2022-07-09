@@ -2,7 +2,7 @@ import os
 from virtualenv.virtualenv import VirtualEnv
 
 
-class RestStart:
+class DjangoStart:
     def __init__(self, *args, **kwargs):
         self.__workdir = kwargs.get('workdir', None)
         self.__app_name = kwargs.get('app_name', None)

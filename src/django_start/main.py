@@ -1,6 +1,6 @@
 import os
 import sys
-from rest_start import RestStart
+from django_start import DjangoStart
 from update_files import UpdateFile
 import time
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         print('Enter valid command < core_name app_name >')
         sys.exit(1)
 
-    app = RestStart(
+    app = DjangoStart(
         workdir=workdir,
         **data
     )
