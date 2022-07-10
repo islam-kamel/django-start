@@ -1,35 +1,19 @@
 import os
-
+from .project import ProjectManager
 
 class UpdateFile:
     def __init__(self, *args, **kwargs):
-        self.core_name = kwargs.get('core_name', None)
+        self.project = ProjectManager(**kwargs)
         self.app_name = kwargs.get('app_name', None)
         self.workdir = kwargs.get('workdir', None)
-        self.settings = self.workdir + fr'\{self.core_name}\settings.py'
-        self.urls = self.workdir + fr'\{self.core_name}\urls.py'
         self.app = self.workdir + fr'\{self.app_name}'
         os.chdir(self.workdir)
 
-
     def update_settings(self):
-        with open(self.settings, 'r+') as f:
-            settings = f.readlines()
-            settings.insert(settings.index(']\n') - 1, f"\t'{self.app_name}',\n")
-            f.close()
-            with open(self.settings, 'w') as sf:
-                sf.write(''.join(settings))
-                sf.close()
+        return self.project.update_settings(self.app_name)
 
     def update_urls(self):
-        with open(self.urls, 'r') as f:
-            urls = f.readlines()
-            urls[urls.index('from django.urls import path\n')] = 'from django.urls import path, include\n'
-            urls.insert(urls.index(']\n') - 1, f"\tpath('', include('{self.app_name}.urls')),\n")
-            f.close()
-            with open(self.urls, 'w') as uf:
-                uf.write(''.join(urls))
-                uf.close()
+        self.project.update_urls(self.app_name)
 
     def create_view(self):
         with open(self.app + r'\views.py', 'r') as f:
