@@ -31,6 +31,9 @@ def run():
     print('✨ Create Project')
     app.create_project()
     time.sleep(0.3)
+    print('✨ Create App')
+    app.create_app()
+    time.sleep(0.3)
 
     print('🔧 Update Settings')
     filemanager.update_settings()
@@ -41,7 +44,7 @@ def run():
     time.sleep(0.3)
 
     print('📝 Create Templates')
-    app.create_templates()
+    filemanager.create_templates()
     time.sleep(0.3)
 
     print('📦 Update App View')

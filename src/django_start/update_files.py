@@ -11,7 +11,6 @@ class UpdateFile:
         self.workdir = kwargs.get('workdir', None)
         os.chdir(self.workdir)
 
-
     def update_settings(self):
         return self.project.update_settings(self.app_name)
 
@@ -23,3 +22,6 @@ class UpdateFile:
 
     def create_urls(self):
         self.app.create_urls()
+
+    def create_templates(self):
+        self.app.create_templates()

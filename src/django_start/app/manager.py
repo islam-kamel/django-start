@@ -7,8 +7,8 @@ class AppManager:
         self.__workdir = kwargs.get('workdir', None) + fr'\{self.app_name}'
         self.__views = self.workdir + r'\views.py'
         self.__urls = self.workdir + r'\urls.py'
+        self.__templates = self.workdir + r'\templates'
         self.__line_list = []
-
 
     @property
     def app_name(self):
@@ -80,6 +80,24 @@ class AppManager:
                 'urlpatterns = [\n',
                 '\tpath(\'\', views.home)\n'
                 ']\n'
+            ]
+            f.write(''.join(content))
+            f.close()
+
+    def create_templates(self):
+        os.mkdir(self.__templates)
+        with open(fr'{self.__templates}\index.html', 'w') as f:
+            content = [
+                '<!DOCTYPE html>\n',
+                '<html lang="en">\n',
+                '<head>\n',
+                '\t<meta charset="UTF-8">\n',
+                '\t<title>Hello, Django-Start</title>\n',
+                '</head>\n',
+                '<body>\n',
+                '\t<h1 style="text-align: center"> Hello, Django-Start</h1>\n',
+                '\t<a href="https://github.com/islam-kamel/django-start"><h1 style="text-align: center">Project</h1></a>\n',
+                '</body>\n</html>'
             ]
             f.write(''.join(content))
             f.close()
