@@ -44,13 +44,11 @@ class DjangoStart:
         self.env.create_env()
 
     def install_dep(self):
-        os.system('pip install django djangorestframework')
-        os.system(f'django-admin startproject {self.core_name} {self.workdir}')
-        os.system(f'python ./manage.py startapp {self.app_name}')
+        os.system('pip install django')
 
     def create_project(self):
         os.system(f'django-admin startproject {self.core_name} {self.workdir}')
-        os.system(f'python ./manage.py startapp {self.app_name}')
+        os.system(f'python manage.py startapp {self.app_name}')
 
     def create_templates(self):
         os.mkdir(fr'{self.workdir}\{self.app_name}\templates')

@@ -27,17 +27,26 @@ def run():
     print('⬇  Install Django')
     time.sleep(0.3)
     app.install_dep()
-    print('📝 Create Templates')
-    app.create_templates()
+
+    print('✨ Create Project')
+    app.create_project()
     time.sleep(0.3)
+
     print('🔧 Update Settings')
     filemanager.update_settings()
     time.sleep(0.3)
+
     print('⬆  Update Project Urls')
     filemanager.update_urls()
     time.sleep(0.3)
-    print('📦 Create App View')
+
+    print('📝 Create Templates')
+    app.create_templates()
+    time.sleep(0.3)
+
+    print('📦 Update App View')
     filemanager.create_view()
     time.sleep(0.3)
+
     print('🔗 Create App Urls')
     filemanager.create_urls()
