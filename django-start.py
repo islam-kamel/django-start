@@ -31,10 +31,7 @@ def is_latest(api_ver, current_ver):
 
 def check_update():
     url = "https://api.github.com/repos/islam-kamel/django-start/tags"
-    token = "token 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"
-    version_api = requests.get(
-        url, headers={"Authorization": token}
-    ).json()  # noqa E501
+    version_api = requests.get(url).json()  # noqa E501
     latest = f'https://github.com/islam-kamel/django-start/releases/tag/{version_api[0]["name"]}'  # noqa E501
     if not is_latest(version_api[0]["name"], version):
         print(f"✨ \033[92mThere is a new version available: {latest}\033[0m")
