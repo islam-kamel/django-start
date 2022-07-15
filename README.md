@@ -1,6 +1,38 @@
-<h1 style="text-align: center">Django Start Automate Script ✨</h1>
-<div style="text-align: center">
+<head>
+<style>
+    .title {
+        text-align: center;
+        font-family: Serif;
+        font-size: 6vh;
+    }
+    .title .first {
+        color: darkgoldenrod;
+        letter-spacing: -6px;
+        margin-right: -2.2%;
+    }
+    .title .second {
+        color: darkgoldenrod;
+        z-index: 0;
+        letter-spacing: -3px;
+    }
+    .description {
+        text-align: center;
+        background: rgba(131,131,131,0.17);
+        padding: 10px;
+        border-radius: 5px;
+        width: 650px;
+        margin: 0 auto
+    }
+</style>
+</head>
 
+<h1 class="title">
+<span class="first">Django</span>
+<span class="second">Start</span>
+Automate Script ✨
+</h1>
+
+<div class="description">
     Django automate start project and create app
     This script saves time for you to start a new Django project.
     It creates the project and creates the first app
@@ -8,18 +40,13 @@
     also updates the project urls file and then creates a views
     and configures the application urls file and
     also creates the index.html
-
 </div>
-
-<div style="text-align: center">
-
-![GitHub Repo stars](https://img.shields.io/github/stars/islam-kamel/django-start?style=social)
-![Platform Support](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green)
-![Latest Version](https://img.shields.io/badge/Latest%20Version-1.0.0--beta.2-green)
-![GitHub tag checks state](https://img.shields.io/github/checks-status/islam-kamel/django-start/1.0.0-beta.2)
-![GitHub all releases](https://img.shields.io/github/downloads/islam-kamel/django-start/total)
-![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/islam-kamel/django-start)
-
+<div style="text-align: center; margin-top: 10px">
+<img src="https://img.shields.io/github/stars/islam-kamel/django-start?style=social" alt="Repo Stars">
+<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green" alt="Platform Support">
+<img src="https://img.shields.io/badge/Latest%20Version-1.0.0--beta.2-green" alt="Latest Version">
+<img src="https://img.shields.io/github/downloads/islam-kamel/django-start/total", alt="Downloads Count">
+<img src="https://img.shields.io/github/release-date-pre/islam-kamel/django-start", alt="GitHub (Pre-)Release Date">
 </div>
 
 ---
