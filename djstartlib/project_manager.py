@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import platform
 from app_manager import AppManager
 from hellper import warn_stdout
 
@@ -51,30 +52,30 @@ class ProjectManager:
     @line_list.setter
     def line_list(self, value):
         self.__line_list = value
-        return self.__line_list
+        return self.line_list
 
     def index(self, value):
-        return self.line_list.index(value)
+        return self.__line_list.index(value)
 
     def read_file(self, file):
         with open(file) as f:
-            self.line_list = f.readlines()
+            self.__line_list = f.readlines()
             f.close()
-        return self.line_list
+        return self.__line_list
 
     def update_lines_list(self, flag, value):
-        self.line_list.insert(self.index(flag), value)
+        self.__line_list.insert(self.index(flag), value)
 
     def replace_line(self, index, value):
-        self.line_list[index] = value
+        self.__line_list[index] = value
 
     def update_settings(self):
         self.read_file(self.settings_path)
-        if f"\t'{self.app_name}',\n" not in self.line_list:
+        if f"\t'{self.app_name}',\n" not in self.__line_list:
             print("⚙️ Update Settings")
             self.update_lines_list("]\n", f"\t'{self.app_name}',\n")
             with open(self.settings_path, "w") as f:
-                f.write("".join(self.line_list))
+                f.write("".join(self.__line_list))
                 f.close()
         else:
             warn_stdout(f'"{self.app_name}" is installed!')
@@ -82,22 +83,33 @@ class ProjectManager:
     def update_urls(self):
         self.read_file(self.urls_path)
         view_path = f"\tpath('', include('{self.app_name}.urls')),\n"
-        if view_path not in self.line_list:
+        if view_path not in self.__line_list:
             self.replace_line(
                 self.index("from django.urls import path\n"),
                 "from django.urls import path, include\n",
             )
             self.update_lines_list("]\n", view_path)
             with open(self.urls_path, "w") as f:
-                f.write("".join(self.line_list))
+                f.write("".join(self.__line_list))
                 f.close()
         else:
             warn_stdout("Urls Already Updated")
 
-    def install_dep(self):
+    @staticmethod
+    def install_dep():
         print("⏳ Install Dependencies")
         subprocess.call(
             f"{sys.executable} -m pip install django",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            shell=True,
+        )
+
+    @staticmethod
+    def requirements_extract():
+        print("🧾 Create Requirements.txt")
+        subprocess.call(
+            f"{sys.executable} -m pip freeze > requirements.txt",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
@@ -112,11 +124,17 @@ class ProjectManager:
         else:
             warn_stdout(f'"{self.core_name}" already exist!')
 
-    def requirements(self):
-        print("🧾 Create Requirements.txt")
+    def create_env(self, env_name_path):
+        print("⚗️ Create Virtualen")
         subprocess.call(
-            "pip freeze > requirements.txt",
+            f"{sys.executable} -m venv {env_name_path}",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
         )
+        if platform.system() == "Windows":
+            sys.executable = (
+                f"{env_name_path}{os.sep}Scripts{os.sep}python.exe"
+            )
+        else:
+            sys.executable = f"{env_name_path}{os.sep}bin{os.sep}python3"

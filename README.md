@@ -1,38 +1,28 @@
-<head>
-<style>
-    .title {
-        text-align: center;
-        font-family: Serif;
-        font-size: 6vh;
-    }
-    .title .first {
-        color: darkgoldenrod;
-        letter-spacing: -6px;
-        margin-right: -2.2%;
-    }
-    .title .second {
-        color: darkgoldenrod;
-        z-index: 0;
-        letter-spacing: -3px;
-    }
-    .description {
-        text-align: center;
-        background: rgba(131,131,131,0.17);
-        padding: 10px;
-        border-radius: 5px;
-        width: 650px;
-        margin: 0 auto
-    }
-</style>
-</head>
-
-<h1 class="title">
-<span class="first">Django</span>
-<span class="second">Start</span>
+<h1 style="
+text-align: center;
+font-family: Serif;
+font-size: 6vh;
+">
+<span style="
+color: darkgoldenrod;
+letter-spacing: -6px;
+margin-right: -2.2%;"
+>Django</span>
+<span style="
+color: darkgoldenrod;
+letter-spacing: -3px;"
+>Start</span>
 Automate Script ✨
 </h1>
 
-<div class="description">
+<div style="
+text-align: center;
+background: rgba(131,131,131,0.17);
+padding: 10px;
+border-radius: 5px;
+width: 650px;
+margin: 0 auto
+">
     Django automate start project and create app
     This script saves time for you to start a new Django project.
     It creates the project and creates the first app
@@ -50,23 +40,44 @@ Automate Script ✨
 </div>
 
 ---
-### open start manu and type Edit the system environment variables
-![img.png](assest/img_1.png)
-- #### click Environment Variables
 
-### click Path variables
-![img.png](assest/img_2.png)
+### Installation
 
-### insert script install path
-![img.png](assest/img_3.png)
-- #### click ok
+````shell
+pip install django-start-automate
+````
+
+````shell
+django-start --help
+
+usage: django-start [-h] [-v] [-n ] project_name app_name path
+
+django-start 1.0.4 (Beta) automate start project and create app
+
+positional arguments:
+  project_name      Write a project name
+  app_name          Write an app name
+  path              select path
+
+options:
+  -h, --help        show this help message and exit
+  -v, --virtualenv  Create virtualenv
+  -n [], --name []  Set virtualenv name
+
+````
+**Success Install 🎊**
+
+### Start First Project with virtualenv
+```shell
+django-start frist_project first_app -v -n my_virtualenv .
+```
 ---
-## Success Install 🎊
-![img.png](assest/img_4.png)
-![img.png](assest/img_5.png)
+> You can run command without create virrualenv
+```shell
+django-start frist_project first_app .
+```
+
+![img.png](assest/img.png)
 
 ## Welcome to contribute ❤
-
-```shell
-pip install pyinstaller | pyinstaller --noconfirm --onefile --console --add-data <requests_package_path> --add-data <djstartlib>  "django-start.py"
-```
+### [django-start](!https://github.com/islam-kamel/django-start) 🧑‍💻

@@ -35,7 +35,7 @@ class AppManager:
     @line_list.setter
     def line_list(self, value):
         self.__line_list = value
-        return self.__line_list
+        return self.line_list
 
     def index(self, value):
         return self.line_list.index(value)

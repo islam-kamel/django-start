@@ -1,6 +1,5 @@
 import sys
 import subprocess
-
 from project_manager import ProjectManager
 
 
@@ -8,7 +7,8 @@ class DjangoStart(ProjectManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def upgrade_pip(self):
+    @staticmethod
+    def upgrade_pip():
         print("📦 Upgrade Pip")
         subprocess.call(
             f"{sys.executable} -m pip install --upgrade pip",
@@ -21,7 +21,7 @@ class DjangoStart(ProjectManager):
         self.upgrade_pip()
         self.install_dep()
         self.create_project()
-        self.requirements()
+        self.requirements_extract()
 
     def setup_app(self):
         self.app_manager.create_app()
