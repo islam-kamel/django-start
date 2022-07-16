@@ -33,8 +33,8 @@ margin: 0 auto
 </div>
 <div style="text-align: center; margin-top: 10px">
 <img src="https://img.shields.io/github/stars/islam-kamel/django-start?style=social" alt="Repo Stars">
-<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green" alt="Platform Support">
-<img src="https://img.shields.io/badge/Latest%20Version-1.0.0--beta.2-green" alt="Latest Version">
+<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20MacOs-green" alt="Platform Support">
+<img src="https://img.shields.io/badge/Latest%20Version-1.0.4--beta-green" alt="Latest Version">
 <img src="https://img.shields.io/github/downloads/islam-kamel/django-start/total", alt="Downloads Count">
 <img src="https://img.shields.io/github/release-date-pre/islam-kamel/django-start", alt="GitHub (Pre-)Release Date">
 </div>
@@ -76,8 +76,6 @@ django-start frist_project first_app -v -n my_virtualenv .
 ```shell
 django-start frist_project first_app .
 ```
-
-![img.png](assest/img.png)
 
 ## Welcome to contribute ❤
 ### [django-start](!https://github.com/islam-kamel/django-start) 🧑‍💻
