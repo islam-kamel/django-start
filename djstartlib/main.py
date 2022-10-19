@@ -10,7 +10,7 @@ django-start 1.0.4 (Beta) automate start project and create app
 """
 
 
-def check_regx(arg_value, pat=re.compile(r"^[a-zA-Z]")):
+def check_regx(arg_value, pat=re.compile(r'^[a-zA-Z]')):
     if not pat.match(arg_value):
         return argparse.ArgumentParser.exit(1, "Enter valid name")
     else:

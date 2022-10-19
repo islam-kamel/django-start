@@ -1,28 +1,4 @@
-<h1 style="
-text-align: center;
-font-family: Serif;
-font-size: 6vh;
-">
-<span style="
-color: darkgoldenrod;
-letter-spacing: -6px;
-margin-right: -2.2%;"
->Django</span>
-<span style="
-color: darkgoldenrod;
-letter-spacing: -3px;"
->Start</span>
-Automate Script ✨
-</h1>
-
-<div style="
-text-align: center;
-background: rgba(131,131,131,0.17);
-padding: 10px;
-border-radius: 5px;
-width: 650px;
-margin: 0 auto
-">
+<div>
     Django automate start project and create app
     This script saves time for you to start a new Django project.
     It creates the project and creates the first app
