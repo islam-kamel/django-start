@@ -4,7 +4,7 @@ import sys
 import platform
 from app_manager import AppManager
 from hellper import warn_stdout
-
+import click
 
 class ProjectManager:
     def __init__(self, *args, **kwargs):
@@ -72,7 +72,7 @@ class ProjectManager:
     def update_settings(self):
         self.read_file(self.settings_path)
         if f"\t'{self.app_name}',\n" not in self.__line_list:
-            print("⚙️ Update Settings")
+            click.secho("\U0001F527 Update Project Settings...", fg='blue')
             self.update_lines_list("]\n", f"\t'{self.app_name}',\n")
             with open(self.settings_path, "w") as f:
                 f.write("".join(self.__line_list))
@@ -97,7 +97,8 @@ class ProjectManager:
 
     @staticmethod
     def install_dep():
-        print("⏳ Install Dependencies")
+        click.secho("\U000023F3 Install Dependencies...", fg='blue')
+
         subprocess.call(
             f"{sys.executable} -m pip install django",
             stdout=subprocess.DEVNULL,
@@ -107,7 +108,7 @@ class ProjectManager:
 
     @staticmethod
     def requirements_extract():
-        print("🧾 Create Requirements.txt")
+        click.secho("\U0001F4C3 Generate Requirements.txt...", fg='blue')
         subprocess.call(
             f"{sys.executable} -m pip freeze > requirements.txt",
             stdout=subprocess.DEVNULL,
@@ -117,7 +118,7 @@ class ProjectManager:
 
     def create_project(self):
         if self.core_name not in os.listdir(self.workdir):
-            print(f'✨ Create Project "{self.core_name}"')
+            click.secho(f"\U00002728 Create '{self.core_name}' Project", fg='blue')
             subprocess.call(
                 f"django-admin startproject {self.core_name} .", shell=True
             )
@@ -125,7 +126,7 @@ class ProjectManager:
             warn_stdout(f'"{self.core_name}" already exist!')
 
     def create_env(self, env_name_path):
-        print("⚗️ Create Virtualen")
+        click.secho("\U0001F984 Create Environment...", fg='blue')
         subprocess.call(
             f"{sys.executable} -m venv {env_name_path}",
             stdout=subprocess.DEVNULL,

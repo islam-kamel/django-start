@@ -1,7 +1,7 @@
 import os
 import subprocess
 from hellper import warn_stdout
-
+import click
 
 class AppManager:
     def __init__(self, *args, **kwargs):
@@ -9,7 +9,8 @@ class AppManager:
         self.__workdir = os.getcwd() + rf"{os.sep}{self.app_name}"
         self.__views = self.workdir + rf"{os.sep}views.py"
         self.__urls = self.workdir + rf"{os.sep}urls.py"
-        self.__templates = self.workdir + rf"{os.sep}templates"
+        self.__templates = self.workdir + f"{os.sep}templates"
+
         self.__line_list = []
 
     @property
@@ -56,7 +57,7 @@ class AppManager:
         if self.app_name not in os.listdir(
             f"{os.sep}".join(self.workdir.split(os.sep)[:-1])
         ):
-            print(f'✨ Create App "{self.app_name}"')
+            click.secho(f"\U00002728 Create '{self.app_name}' App...", fg='blue')
             subprocess.call(
                 f"python manage.py startapp {self.app_name}", shell=True
             )
@@ -66,10 +67,10 @@ class AppManager:
     def update_view(self):
         self.read_file(self.views)
         if "# Create your views here.\n" in self.line_list:
-            print(f"🏗️ Create {self.app_name} View")
+            click.secho(f"\U0001F304 Create '{self.app_name}' View...", fg='blue')
             self.replace_line(
                 self.index("# Create your views here.\n"),
-                "def home(request):\n\treturn render(request, 'index.html')\n",
+                f"def home(request):\n\treturn render(request, '{self.app_name}{os.sep}index.html')\n",
             )
             with open(self.views, "w") as f:
                 f.write("".join(self.line_list))
@@ -79,7 +80,7 @@ class AppManager:
 
     def create_urls(self):
         with open(self.urls, "w") as f:
-            print(f"🔗 Create {self.app_name} Urls")
+            click.secho(f"\U0001F517 Create {self.app_name} URLs...", fg='blue')
             content = [
                 "from django.urls import path\n",
                 "from . import views\n" "\n",
@@ -90,21 +91,26 @@ class AppManager:
             f.close()
 
     def create_templates(self):
-        print(f"🌐 Create {self.app_name} index.html")
+        click.secho(f"\U0001F389 Generate '{self.app_name}' Index Page...", fg='blue')
+
         if not os.path.exists(self.__templates):
             os.mkdir(self.__templates)
-        with open(rf"{self.__templates}{os.sep}index.html", "w") as f:
-            content = [
-                "<!DOCTYPE html>\n",
-                '<html lang="en">\n',
-                "<head>\n",
-                '\t<meta charset="UTF-8">\n',
-                "\t<title>Hello, Django-Start</title>\n",
-                "</head>\n",
-                "<body>\n",
-                '\t<h1 style="text-align: center"> Hello, Django-Start</h1>\n',
-                '\t<a href="https://github.com/islam-kamel/django-start"><h1 style="text-align: center">Project</h1></a>\n',  # noqa E501
-                "</body>\n</html>",
-            ]
-            f.write("".join(content))
+            self.__templates += f'{os.sep}{self.app_name}'
+            os.mkdir(self.__templates)
+        with open(f"{self.__templates}{os.sep}index.html", "w") as f:
+            content = """
+            <DOCTYPE html>
+            <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Django Start</title>
+                </head>
+                <body>
+                    <h1 style="text-align: center"> Hello, Django-Start</h1>
+                    <a class="github-button" href="https://github.com/islam-kamel/django-start" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star islam-kamel/django-start on GitHub">Django-Start</a>
+                <body>
+                <script async defer src="https://buttons.github.io/buttons.js"></script>
+            </html>
+            """
+            f.write(content)
             f.close()

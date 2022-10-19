@@ -1,6 +1,7 @@
 import sys
 import subprocess
 from project_manager import ProjectManager
+import click
 
 
 class DjangoStart(ProjectManager):
@@ -9,7 +10,7 @@ class DjangoStart(ProjectManager):
 
     @staticmethod
     def upgrade_pip():
-        print("📦 Upgrade Pip")
+        click.secho("\U0001F4E6 Upgrade Pip...", fg='blue')
         subprocess.call(
             f"{sys.executable} -m pip install --upgrade pip",
             stdout=subprocess.DEVNULL,
