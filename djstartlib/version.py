@@ -1,32 +1,49 @@
 import sys
+import subprocess
 import urllib.error
 from urllib import request
 import json
+import click
 
-version = "1.0.4"
+version = "1.1.4 (beta)"
+
 
 
 def latest_version():
     res = request.urlopen("https://api.github.com/repos/islam-kamel/django-start/tags")
     version_name = json.load(res)[0]["name"]
-    version_name = version_name.split(".")
-    version_name[-1] = version_name[-1].split("-")[0]
-    version_name = [int(num) for num in version_name]
-    return version_name
+    version_int = version_name.split(".")
+    version_int[-1] = version_int[-1].split("-")[0]
+    version_int = [int(num) for num in version_int]
+    return version_name, version_int
 
 
 def current_version():
-    return [1, 0, 3]
+    return [1, 1, 4]
 
 
 def check_available():
     try:
-        online = latest_version()
+        ver_name, ver_int = latest_version()
         current = current_version()
-        if sum(online) > sum(current):
+        if sum(ver_int) > sum(current):
+            print(f'New Update Available {ver_name}')
             return True
-        else:
-            return False
+
     except urllib.error.URLError:
         sys.exit(1)
         pass
+
+@click.command()
+@click.option('--update/--check-update')
+def main(update):
+    if not update:
+        return check_available()
+
+    if update:
+        return subprocess.call(f'{sys.executable} -m pip install --upgrade django_start_automate', shell=True)
+
+    print(version)
+
+if __name__ == "__main__":
+    main()

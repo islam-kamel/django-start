@@ -5,10 +5,6 @@ import click
 from djstart_interface import DjangoStart
 from hellper import create_env
 
-version = """
-django-start 1.0.4 (Beta) automate start project and create app
-"""
-
 
 @click.command()
 @click.argument("project_name", type=str)
@@ -40,6 +36,7 @@ def main(**kwargs):
     )
     django_start.setup_project()
     django_start.setup_app()
+
 
 
 if __name__ == "__main__":
