@@ -10,7 +10,7 @@ class AppManager:
         self.__views = self.workdir + rf"{os.sep}views.py"
         self.__urls = self.workdir + rf"{os.sep}urls.py"
         self.__templates = self.workdir + f"{os.sep}templates"
-
+        self.python = os.environ.get('PYTHONPATH', None)
         self.__line_list = []
 
     @property
@@ -36,7 +36,6 @@ class AppManager:
     @line_list.setter
     def line_list(self, value):
         self.__line_list = value
-        return self.line_list
 
     def index(self, value):
         return self.line_list.index(value)
@@ -59,7 +58,7 @@ class AppManager:
         ):
             click.secho(f"\U00002728 Create '{self.app_name}' App...", fg='blue')
             subprocess.call(
-                f"python manage.py startapp {self.app_name}", shell=True
+                f"{self.python} manage.py startapp {self.app_name}", shell=True
             )
         else:
             warn_stdout(f'"{self.app_name}" already exist!')
@@ -81,13 +80,21 @@ class AppManager:
     def create_urls(self):
         with open(self.urls, "w") as f:
             click.secho(f"\U0001F517 Create {self.app_name} URLs...", fg='blue')
-            content = [
-                "from django.urls import path\n",
-                "from . import views\n" "\n",
-                "urlpatterns = [\n",
-                "\tpath('', views.home)\n" "]\n",
+            # content = [
+            #     "from django.urls import path\n",
+            #     "from . import views\n" "\n",
+            #     "urlpatterns = [\n",
+            #     "\tpath('', views.home)\n" "]\n",
+            # ]
+            content = """
+            from django.url import path
+            from . import views
+            urlpatterns = [
+                path('', views.home)
             ]
-            f.write("".join(content))
+            
+            """
+            f.write(content)
             f.close()
 
     def create_templates(self):

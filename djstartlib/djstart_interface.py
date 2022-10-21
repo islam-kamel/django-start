@@ -8,11 +8,11 @@ class DjangoStart(ProjectManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @staticmethod
-    def upgrade_pip():
+
+    def upgrade_pip(self):
         click.secho("\U0001F4E6 Upgrade Pip...", fg='blue')
         subprocess.call(
-            f"{sys.executable} -m pip install --upgrade pip",
+            f"{self.python} -m pip install --upgrade pip",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
@@ -26,8 +26,8 @@ class DjangoStart(ProjectManager):
 
     def setup_app(self):
         self.app_manager.create_app()
-        self.update_settings()
-        self.update_urls()
-        self.app_manager.update_view()
-        self.app_manager.create_templates()
-        self.app_manager.create_urls()
+        # self.update_settings()
+        # self.update_urls()
+        # self.app_manager.update_view()
+        # self.app_manager.create_templates()
+        # self.app_manager.create_urls()

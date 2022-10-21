@@ -1,7 +1,6 @@
 import os
 import subprocess
 import sys
-import platform
 from app_manager import AppManager
 from hellper import warn_stdout
 import click
@@ -18,12 +17,30 @@ class ProjectManager:
         self.__settings = (
             self.__workdir + rf"{os.sep}{self.core_name}{os.sep}settings.py"
         )
+        self.python = os.environ.get('PYTHONPATH', None)
+        self.django_admin = os.environ.get('DJANGOADMIN', None)
         self.__other_dependencies = []
         self.__line_list = []
 
     @property
     def app_manager(self):
         return self.__app_manager
+
+    @property
+    def python(self):
+        return self.__python
+
+    @python.setter
+    def python(self, python_path):
+        self.__python = python_path
+
+    @property
+    def django_admin(self):
+        return self.__django_admin
+
+    @django_admin.setter
+    def django_admin(self, django_admin_path):
+        self.__django_admin = django_admin_path
 
     @property
     def core_name(self):
@@ -52,7 +69,6 @@ class ProjectManager:
     @line_list.setter
     def line_list(self, value):
         self.__line_list = value
-        return self.line_list
 
     def index(self, value):
         return self.__line_list.index(value)
@@ -95,22 +111,19 @@ class ProjectManager:
         else:
             warn_stdout("Urls Already Updated")
 
-    @staticmethod
-    def install_dep():
+    def install_dep(self):
         click.secho("\U000023F3 Install Dependencies...", fg='blue')
-
         subprocess.call(
-            f"{sys.executable} -m pip install django",
+            f"{self.python} -m pip install django",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
         )
 
-    @staticmethod
-    def requirements_extract():
+    def requirements_extract(self):
         click.secho("\U0001F4C3 Generate Requirements.txt...", fg='blue')
         subprocess.call(
-            f"{sys.executable} -m pip freeze > requirements.txt",
+            f"{self.python} -m pip freeze > requirements.txt",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
@@ -119,23 +132,11 @@ class ProjectManager:
     def create_project(self):
         if self.core_name not in os.listdir(self.workdir):
             click.secho(f"\U00002728 Create '{self.core_name}' Project", fg='blue')
-            subprocess.call(
-                f"django-admin startproject {self.core_name} .", shell=True
+            proc = subprocess.call(
+                f"{self.django_admin} startproject {self.core_name} .", shell=True
             )
+            if proc:
+                click.secho('👎 Please Check Internet Connection', fg='white', bg='red')
+                sys.exit(1)
         else:
             warn_stdout(f'"{self.core_name}" already exist!')
-
-    def create_env(self, env_name_path):
-        click.secho("\U0001F984 Create Environment...", fg='blue')
-        subprocess.call(
-            f"{sys.executable} -m venv {env_name_path}",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
-        if platform.system() == "Windows":
-            sys.executable = (
-                f"{env_name_path}{os.sep}Scripts{os.sep}python.exe"
-            )
-        else:
-            sys.executable = f"{env_name_path}{os.sep}bin{os.sep}python3"
