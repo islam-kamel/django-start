@@ -1,9 +1,14 @@
 import os
-import subprocess
-import sys
 from app_manager import AppManager
-from hellper import warn_stdout
+from hellper import (
+    warn_stdout,
+    executable_django_command,
+    install_dep,
+    requirements_extract,
+    upgrade_pip,
+)
 import click
+
 
 class ProjectManager:
     def __init__(self, *args, **kwargs):
@@ -11,14 +16,12 @@ class ProjectManager:
         self.__workdir = os.getcwd()
         self.__app_name = kwargs.get("app_name", None)
         self.__core_name = kwargs.get("core_name", None)
-        self.__urls = (
-            self.__workdir + rf"{os.sep}{self.core_name}{os.sep}urls.py"
-        )
+        self.__urls = self.__workdir + rf"{os.sep}{self.core_name}{os.sep}urls.py"
         self.__settings = (
             self.__workdir + rf"{os.sep}{self.core_name}{os.sep}settings.py"
         )
-        self.python = os.environ.get('PYTHONPATH', None)
-        self.django_admin = os.environ.get('DJANGOADMIN', None)
+        self.python = os.environ.get("PYTHONPATH", None)
+        self.django_admin = os.environ.get("DJANGOADMIN", None)
         self.__other_dependencies = []
         self.__line_list = []
 
@@ -88,7 +91,7 @@ class ProjectManager:
     def update_settings(self):
         self.read_file(self.settings_path)
         if f"\t'{self.app_name}',\n" not in self.__line_list:
-            click.secho("\U0001F527 Update Project Settings...", fg='blue')
+            click.secho("\U0001F527 Update Project Settings...", fg="blue")
             self.update_lines_list("]\n", f"\t'{self.app_name}',\n")
             with open(self.settings_path, "w") as f:
                 f.write("".join(self.__line_list))
@@ -111,32 +114,24 @@ class ProjectManager:
         else:
             warn_stdout("Urls Already Updated")
 
-    def install_dep(self):
-        click.secho("\U000023F3 Install Dependencies...", fg='blue')
-        subprocess.call(
-            f"{self.python} -m pip install django",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
+    @staticmethod
+    def upgrade_pip():
+        click.secho("\U0001F4E6 Upgrade Pip...", fg="blue")
+        upgrade_pip()
 
-    def requirements_extract(self):
-        click.secho("\U0001F4C3 Generate Requirements.txt...", fg='blue')
-        subprocess.call(
-            f"{self.python} -m pip freeze > requirements.txt",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
+    @staticmethod
+    def install_dep():
+        click.secho("\U000023F3 Install Dependencies...", fg="blue")
+        install_dep()
+
+    @staticmethod
+    def requirements_extract():
+        click.secho("\U0001F4C3 Generate Requirements.txt...", fg="blue")
+        requirements_extract()
 
     def create_project(self):
         if self.core_name not in os.listdir(self.workdir):
-            click.secho(f"\U00002728 Create '{self.core_name}' Project", fg='blue')
-            proc = subprocess.call(
-                f"{self.django_admin} startproject {self.core_name} .", shell=True
-            )
-            if proc:
-                click.secho('👎 Please Check Internet Connection', fg='white', bg='red')
-                sys.exit(1)
+            click.secho(f"\U00002728 Create '{self.core_name}' Project", fg="blue")
+            executable_django_command(f"startproject {self.core_name} .")
         else:
             warn_stdout(f'"{self.core_name}" already exist!')

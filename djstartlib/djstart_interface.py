@@ -1,22 +1,10 @@
-import sys
 import subprocess
 from project_manager import ProjectManager
-import click
 
 
 class DjangoStart(ProjectManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-
-    def upgrade_pip(self):
-        click.secho("\U0001F4E6 Upgrade Pip...", fg='blue')
-        subprocess.call(
-            f"{self.python} -m pip install --upgrade pip",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
 
     def setup_project(self):
         self.upgrade_pip()
@@ -26,8 +14,8 @@ class DjangoStart(ProjectManager):
 
     def setup_app(self):
         self.app_manager.create_app()
-        # self.update_settings()
-        # self.update_urls()
-        # self.app_manager.update_view()
-        # self.app_manager.create_templates()
-        # self.app_manager.create_urls()
+        self.update_settings()
+        self.update_urls()
+        self.app_manager.update_view()
+        self.app_manager.create_templates()
+        self.app_manager.create_urls()
