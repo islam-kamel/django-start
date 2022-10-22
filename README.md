@@ -1,19 +1,9 @@
-<div>
-    Django automate start project and create app
-    This script saves time for you to start a new Django project.
-    It creates the project and creates the first app
-    and then updates the project settings file and
-    also updates the project urls file and then creates a views
-    and configures the application urls file and
-    also creates the index.html
-</div>
-<div style="text-align: center; margin-top: 10px">
-<img src="https://img.shields.io/github/stars/islam-kamel/django-start?style=social" alt="Repo Stars">
-<img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20MacOs-green" alt="Platform Support">
-<img src="https://img.shields.io/badge/Latest%20Version-1.0.4--beta-green" alt="Latest Version">
-<img src="https://img.shields.io/github/downloads/islam-kamel/django-start/total", alt="Downloads Count">
-<img src="https://img.shields.io/github/release-date-pre/islam-kamel/django-start", alt="GitHub (Pre-)Release Date">
-</div>
+# Django-Start
+
+---
+Prepare a new Django project quickly and automatically and more wonderful things that save you time By django start
+
+![Repo Stars](https://img.shields.io/github/stars/islam-kamel/django-start?style=social) ![Platform Support](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20MacOs-green) ![Latest Version](https://img.shields.io/badge/Latest%20Version-1.0.4--beta-green) ![Downloads Count](https://img.shields.io/github/downloads/islam-kamel/django-start/total) ![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/islam-kamel/django-start)
 
 ---
 
@@ -26,32 +16,48 @@ pip install django-start-automate
 ````shell
 django-start --help
 
-usage: django-start [-h] [-v] [-n ] project_name app_name path
+Usage: django-start [OPTIONS] PROJECT_NAME APP_NAME
 
-django-start 1.0.4 (Beta) automate start project and create app
+  Prepare a new Django project quickly and automatically and, more wonderful
+  things that save you time By django start
 
-positional arguments:
-  project_name      Write a project name
-  app_name          Write an app name
-  path              select path
-
-options:
-  -h, --help        show this help message and exit
-  -v, --virtualenv  Create virtualenv
-  -n [], --name []  Set virtualenv name
+Options:
+  -n, --name <LAMBDA>    Custom Environment Name
+  -v, --virtualenv TEXT  Install Environment Is Deprecated
+  --help                 Show this message and exit.
 
 ````
 **Success Install 🎊**
 
-### Start First Project with virtualenv
+### Deprecated Options
+- `-v, --virtualenv` Option is deprecated
+
+### Build First Django Project
 ```shell
-django-start frist_project first_app -v -n my_virtualenv .
-```
----
-> You can run command without create virrualenv
-```shell
-django-start frist_project first_app .
+django-start project_name app_name
 ```
 
-## Welcome to contribute ❤
-### [django-start](https://github.com/islam-kamel/django-start) 🧑‍💻
+### Options
+- `-n or -name` to set custom environment name
+
+---
+### django-version Command
+
+```shell
+Usage: django-version [OPTIONS]
+
+Display current versio,
+check new update and update django-start
+
+Options:
+  --update / --check-update TEXT
+  --help         Show this message and exit.
+```
+
+### New
+- `django-version`  Display django-start version
+- `django-version --check-update`  Check New Update Available
+- `django-version --update`  update django-start
+---
+### Welcome to contribute ❤
+### [PyPi](https://pypi.org/project/django-start-automate/) 🧑‍💻
