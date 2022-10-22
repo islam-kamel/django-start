@@ -35,8 +35,12 @@ def check_available():
 
 
 @click.command()
-@click.option("--update/--check-update")
+@click.option("--update/--check-update", help='check update or update django-start')
 def main(update):
+    """
+    Display current versio,
+    check new update and update django-start
+    """
     if not update:
         return check_available()
 
