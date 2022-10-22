@@ -8,7 +8,6 @@ import click
 version = "1.1.4 (beta)"
 
 
-
 def latest_version():
     res = request.urlopen("https://api.github.com/repos/islam-kamel/django-start/tags")
     version_name = json.load(res)[0]["name"]
@@ -27,23 +26,28 @@ def check_available():
         ver_name, ver_int = latest_version()
         current = current_version()
         if sum(ver_int) > sum(current):
-            print(f'New Update Available {ver_name}')
+            print(f"New Update Available {ver_name}")
             return True
 
     except urllib.error.URLError:
         sys.exit(1)
         pass
 
+
 @click.command()
-@click.option('--update/--check-update')
+@click.option("--update/--check-update")
 def main(update):
     if not update:
         return check_available()
 
     if update:
-        return subprocess.call(f'{sys.executable} -m pip install --upgrade django_start_automate', shell=True)
+        return subprocess.call(
+            f"{sys.executable} -m pip install --upgrade django_start_automate",
+            shell=True,
+        )
 
     print(version)
+
 
 if __name__ == "__main__":
     main()

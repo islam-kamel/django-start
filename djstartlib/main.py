@@ -38,6 +38,5 @@ def main(**kwargs):
     django_start.setup_app()
 
 
-
 if __name__ == "__main__":
     main()

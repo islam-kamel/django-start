@@ -1,4 +1,3 @@
-import subprocess
 from project_manager import ProjectManager
 
 
