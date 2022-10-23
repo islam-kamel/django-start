@@ -27,10 +27,10 @@ def create_env(env_name_path):
         )
     else:
         os.environ.setdefault(
-            "PYTHONPATH", f"{env_name_path}{os.sep}Scripts{os.sep}python3"
+            "PYTHONPATH", f"{env_name_path}{os.sep}bin{os.sep}python3"
         )
         os.environ.setdefault(
-            "DJANGOADMIN", f"{env_name_path}{os.sep}Scripts{os.sep}django-admin.exe"
+            "DJANGOADMIN", f"{env_name_path}{os.sep}bin{os.sep}django-admin"
         )
 
 
@@ -43,6 +43,8 @@ def executable_python_command(command):
             shell=True,
         )
         if proc:
+            if platform.system() != 'Windows':
+                click.secho("check your installed python3-env", fg="white", bg="read")
             sys.exit(1)
     except KeyError:
         click.secho("Be sure to set up PYTHONPATH", fg="white", bg="read")
