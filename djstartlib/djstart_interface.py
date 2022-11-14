@@ -1,21 +1,9 @@
-import sys
-import subprocess
 from project_manager import ProjectManager
 
 
 class DjangoStart(ProjectManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-    @staticmethod
-    def upgrade_pip():
-        print("📦 Upgrade Pip")
-        subprocess.call(
-            f"{sys.executable} -m pip install --upgrade pip",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
 
     def setup_project(self):
         self.upgrade_pip()

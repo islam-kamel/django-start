@@ -1,9 +1,13 @@
 import os
-import subprocess
-import sys
-import platform
 from app_manager import AppManager
-from hellper import warn_stdout
+from hellper import (
+    warn_stdout,
+    executable_django_command,
+    install_dep,
+    requirements_extract,
+    upgrade_pip,
+)
+import click
 
 
 class ProjectManager:
@@ -12,18 +16,34 @@ class ProjectManager:
         self.__workdir = os.getcwd()
         self.__app_name = kwargs.get("app_name", None)
         self.__core_name = kwargs.get("core_name", None)
-        self.__urls = (
-            self.__workdir + rf"{os.sep}{self.core_name}{os.sep}urls.py"
-        )
+        self.__urls = self.__workdir + rf"{os.sep}{self.core_name}{os.sep}urls.py"
         self.__settings = (
             self.__workdir + rf"{os.sep}{self.core_name}{os.sep}settings.py"
         )
+        self.python = os.environ.get("PYTHONPATH", None)
+        self.django_admin = os.environ.get("DJANGOADMIN", None)
         self.__other_dependencies = []
         self.__line_list = []
 
     @property
     def app_manager(self):
         return self.__app_manager
+
+    @property
+    def python(self):
+        return self.__python
+
+    @python.setter
+    def python(self, python_path):
+        self.__python = python_path
+
+    @property
+    def django_admin(self):
+        return self.__django_admin
+
+    @django_admin.setter
+    def django_admin(self, django_admin_path):
+        self.__django_admin = django_admin_path
 
     @property
     def core_name(self):
@@ -52,7 +72,6 @@ class ProjectManager:
     @line_list.setter
     def line_list(self, value):
         self.__line_list = value
-        return self.line_list
 
     def index(self, value):
         return self.__line_list.index(value)
@@ -72,7 +91,7 @@ class ProjectManager:
     def update_settings(self):
         self.read_file(self.settings_path)
         if f"\t'{self.app_name}',\n" not in self.__line_list:
-            print("⚙️ Update Settings")
+            click.secho("\U0001F527 Update Project Settings...", fg="blue")
             self.update_lines_list("]\n", f"\t'{self.app_name}',\n")
             with open(self.settings_path, "w") as f:
                 f.write("".join(self.__line_list))
@@ -96,45 +115,23 @@ class ProjectManager:
             warn_stdout("Urls Already Updated")
 
     @staticmethod
+    def upgrade_pip():
+        click.secho("\U0001F4E6 Upgrade Pip...", fg="blue")
+        upgrade_pip()
+
+    @staticmethod
     def install_dep():
-        print("⏳ Install Dependencies")
-        subprocess.call(
-            f"{sys.executable} -m pip install django",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
+        click.secho("\U000023F3 Install Dependencies...", fg="blue")
+        install_dep()
 
     @staticmethod
     def requirements_extract():
-        print("🧾 Create Requirements.txt")
-        subprocess.call(
-            f"{sys.executable} -m pip freeze > requirements.txt",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
+        click.secho("\U0001F4C3 Generate Requirements.txt...", fg="blue")
+        requirements_extract()
 
     def create_project(self):
         if self.core_name not in os.listdir(self.workdir):
-            print(f'✨ Create Project "{self.core_name}"')
-            subprocess.call(
-                f"django-admin startproject {self.core_name} .", shell=True
-            )
+            click.secho(f"\U00002728 Create '{self.core_name}' Project", fg="blue")
+            executable_django_command(f"startproject {self.core_name} .")
         else:
             warn_stdout(f'"{self.core_name}" already exist!')
-
-    def create_env(self, env_name_path):
-        print("⚗️ Create Virtualen")
-        subprocess.call(
-            f"{sys.executable} -m venv {env_name_path}",
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
-        if platform.system() == "Windows":
-            sys.executable = (
-                f"{env_name_path}{os.sep}Scripts{os.sep}python.exe"
-            )
-        else:
-            sys.executable = f"{env_name_path}{os.sep}bin{os.sep}python3"
