@@ -47,7 +47,7 @@ def main(update, check_update):
 
     if update:
         return subprocess.call(
-            f"{sys.executable} -m pip install --upgrade django_start_automate",
+            f"{sys.executable} -m pip install --upgrade django-start-automate",
             shell=True,
         )
 

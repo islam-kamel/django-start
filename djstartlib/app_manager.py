@@ -96,7 +96,9 @@ class AppManager:
 
         if not os.path.exists(self.__templates):
             os.mkdir(self.__templates)
-            self.__templates += f"{os.sep}{self.app_name}"
+
+        self.__templates += f"{os.sep}{self.app_name}"
+        if not os.path.exists(self.__templates):
             os.mkdir(self.__templates)
         with open(f"{self.__templates}{os.sep}index.html", "w") as f:
             f.write(generate_html())
