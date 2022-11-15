@@ -11,6 +11,7 @@ from models.utils.hellper import (executable_django_command, install_dep,
 class ProjectManager(Environment):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
+        # self.__app_manager = AppManager(*args, **kwargs)
         self.__urls = os.path.join(
             self.get_workdir(), f'{self.get_project_name()}/urls.py'
         )

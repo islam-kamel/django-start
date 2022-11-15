@@ -1,20 +1,23 @@
-from models.project_manager import ProjectManager
+from models import AppManager, ProjectManager
+from models.utils.hellper import create_env
 
 
-class DjangoStart(ProjectManager):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class DjangoStart:
+    def __init__(self, env_path, **kwargs):
+        self.project_cls = ProjectManager(**kwargs)
+        self.app_cls = AppManager(**kwargs)
+        create_env(env_path)
 
     def setup_project(self):
-        self.upgrade_pip()
-        self.install_dep()
-        self.create_project()
-        self.requirements_extract()
+        self.project_cls.upgrade_pip()
+        self.project_cls.install_dep()
+        self.project_cls.create_project()
+        self.project_cls.requirements_extract()
 
     def setup_app(self):
-        self.app_manager.create_app()
-        self.update_settings()
-        self.update_urls()
-        self.app_manager.update_view()
-        self.app_manager.create_templates()
-        self.app_manager.create_urls()
+        self.app_cls.create_app()
+        self.project_cls.update_settings()
+        self.project_cls.update_urls()
+        self.app_cls.update_view()
+        self.app_cls.create_templates()
+        self.app_cls.create_urls()

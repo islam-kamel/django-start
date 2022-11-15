@@ -5,6 +5,8 @@ import click
 
 # from models.djstart_interface import DjangoStart
 from models import AppManager
+from models import ProjectManager
+from models import DjangoStart
 from models.utils.hellper import create_env
 """
 from models.utils.hellper import create_env
@@ -41,11 +43,10 @@ def main(**kwargs):
         )
         click.secho("Creating a virtual environment is a best practice!", fg="green")
 
-    create_env(kwargs["name"])
-    obj = AppManager(app=kwargs['app_name'], project=kwargs['project_name'])
-
-    # project = AppManager(app=kwargs['app_name'], project=kwargs['project_name'])
-
+    # create_env(kwargs["name"])
+    app = DjangoStart(kwargs['name'], app=kwargs['app_name'], project=kwargs['project_name'])
+    app.setup_project()
+    app.setup_app()
     """
     django_start = DjangoStart(
         app_name=kwargs["app_name"], core_name=kwargs["project_name"]
