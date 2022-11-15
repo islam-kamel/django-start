@@ -36,10 +36,10 @@ def executable_python_command(command):
         )
         if proc:
             if platform.system() != 'Windows':
-                click.secho("check your installed python3-env", fg="white", bg="read")
+                click.secho("check your installed python3-env and python3-pip", fg="white", bg="red")
             sys.exit(1)
     except KeyError:
-        click.secho("Be sure to set up PYTHONPATH", fg="white", bg="read")
+        click.secho("Be sure to set up PYTHONPATH", fg="white", bg="red")
         sys.exit(1)
 
 
@@ -54,7 +54,7 @@ def executable_django_command(command):
         if proc:
             sys.exit(1)
     except KeyError:
-        click.secho("Be sure to set up DJANGOADMIN", fg="white", bg="read")
+        click.secho("Be sure to set up DJANGOADMIN", fg="white", bg="red")
         sys.exit(1)
 
 
