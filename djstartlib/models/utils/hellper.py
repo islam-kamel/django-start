@@ -29,7 +29,7 @@ def create_env(env_name_path):
 def executable_python_command(command):
     try:
         proc = subprocess.call(
-            f"{os.environ.get('PYTHONEXEC')} {command}",
+            f"{os.getenv('PYTHONEXEC')} {command}",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,
@@ -46,7 +46,7 @@ def executable_python_command(command):
 def executable_django_command(command):
     try:
         proc = subprocess.call(
-            f"{os.environ.get('DJANGOADMIN')} {command}",
+            f"{os.getenv('DJANGOADMIN')} {command}",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,

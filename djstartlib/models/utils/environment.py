@@ -30,7 +30,7 @@ class Environment:
         self.__project_name = kwargs.get('project')
         self.__workdir = os.getcwd()
         self.__exec = os.getenv('PYTHONEXEC')
-        self.__django_admin = os.environ.get('DJANGOADMIN')
+        self.__django_admin = os.getenv('DJANGOADMIN')
         self.test()
 
     def get_app_name(self): return self.__app_name
