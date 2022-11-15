@@ -1,21 +1,21 @@
 import os
-from app_manager import AppManager
-from hellper import (
-    warn_stdout,
-    executable_django_command,
-    install_dep,
-    requirements_extract,
-    upgrade_pip,
-)
+
 import click
 
+from models.utils import Environment
+# from app_manager import AppManager
+from models.utils.hellper import (executable_django_command, install_dep,
+                                  requirements_extract, upgrade_pip,
+                                  warn_stdout)
 
-class ProjectManager:
+
+class ProjectManager(Environment):
     def __init__(self, *args, **kwargs):
-        self.__app_manager = AppManager(*args, **kwargs)
+        super().__init__(**kwargs)
+        # self.__app_manager = AppManager(*args, **kwargs)
         self.__workdir = os.getcwd()
-        self.__app_name = kwargs.get("app_name", None)
-        self.__core_name = kwargs.get("core_name", None)
+        self.__app_name = kwargs.get("app", None)
+        self.__core_name = kwargs.get("project", None)
         self.__urls = self.__workdir + rf"{os.sep}{self.core_name}{os.sep}urls.py"
         self.__settings = (
             self.__workdir + rf"{os.sep}{self.core_name}{os.sep}settings.py"
@@ -24,11 +24,11 @@ class ProjectManager:
         self.django_admin = os.environ.get("DJANGOADMIN", None)
         self.__other_dependencies = []
         self.__line_list = []
-
+    """
     @property
     def app_manager(self):
         return self.__app_manager
-
+    """
     @property
     def python(self):
         return self.__python

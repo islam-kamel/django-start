@@ -2,10 +2,21 @@
 import pathlib
 
 import click
+
+# from models.djstart_interface import DjangoStart
+from models import AppManager
+from models.utils.hellper import create_env
+"""
+from models.utils.hellper import create_env
+from models.app_manager import AppManager
+from models.project_manager import ProjectManager
+"""
+"""
 from djstart_interface import DjangoStart
 from hellper import create_env
-
-
+from app_manager import AppManager
+from project_manager import ProjectManager
+"""
 @click.command()
 @click.argument("project_name", type=str)
 @click.argument("app_name", type=str)
@@ -31,11 +42,17 @@ def main(**kwargs):
         click.secho("Creating a virtual environment is a best practice!", fg="green")
 
     create_env(kwargs["name"])
+    obj = AppManager(app=kwargs['app_name'], project=kwargs['project_name'])
+
+    # project = AppManager(app=kwargs['app_name'], project=kwargs['project_name'])
+
+    """
     django_start = DjangoStart(
         app_name=kwargs["app_name"], core_name=kwargs["project_name"]
     )
     django_start.setup_project()
     django_start.setup_app()
+    """
 
 if __name__ == "__main__":
     main()

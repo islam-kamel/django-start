@@ -19,25 +19,17 @@ def create_env(env_name_path):
         shell=True,
     )
     if platform.system() == "Windows":
-        os.environ.setdefault(
-            "PYTHONPATH", f"{env_name_path}{os.sep}Scripts{os.sep}python.exe"
-        )
-        os.environ.setdefault(
-            "DJANGOADMIN", f"{env_name_path}{os.sep}Scripts{os.sep}django-admin.exe"
-        )
+        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'Scripts/python.exe') 
+        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'Scripts/django-admin.exe'))
     else:
-        os.environ.setdefault(
-            "PYTHONPATH", f"{env_name_path}{os.sep}bin{os.sep}python3"
-        )
-        os.environ.setdefault(
-            "DJANGOADMIN", f"{env_name_path}{os.sep}bin{os.sep}django-admin"
-        )
+        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'bin/python3')
+        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'bin/django-admin'))
 
 
 def executable_python_command(command):
     try:
         proc = subprocess.call(
-            f"{os.environ.get('PYTHONPATH')} {command}",
+            f"{os.environ.get('PYTHONEXEC')} {command}",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=True,

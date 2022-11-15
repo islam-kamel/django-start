@@ -1,4 +1,4 @@
-from project_manager import ProjectManager
+from models.project_manager import ProjectManager
 
 
 class DjangoStart(ProjectManager):

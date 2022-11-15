@@ -1,18 +1,17 @@
 import os
-from hellper import (
-    warn_stdout,
-    executable_python_command,
-    build_views_urls,
-    build_view_func,
-    generate_html,
-)
 
 import click
 
+from models.utils import Environment
+from models.utils.hellper import (build_view_func, build_views_urls,
+                                  executable_python_command, generate_html,
+                                  warn_stdout)
 
-class AppManager:
+
+class AppManager(Environment):
     def __init__(self, *args, **kwargs):
-        self.__app_name = kwargs.get("app_name", None)
+        super().__init__(**kwargs)
+        self.__app_name = kwargs.get("app", None)
         self.__workdir = os.getcwd() + rf"{os.sep}{self.app_name}"
         self.__views = self.workdir + rf"{os.sep}views.py"
         self.__urls = self.workdir + rf"{os.sep}urls.py"
