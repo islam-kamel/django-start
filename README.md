@@ -14,17 +14,16 @@ pip install django-start-automate
 ````
 
 ````shell
-django-start --help
-
-Usage: django-start [OPTIONS] PROJECT_NAME APP_NAME
+Usage: main.py [OPTIONS] PROJECT_NAME APP_NAME
 
   Prepare a new Django project quickly and automatically and, more wonderful
   things that save you time By django start
 
 Options:
-  -n, --name <LAMBDA>    Custom Environment Name
-  -v, --virtualenv TEXT  Install Environment Is Deprecated
-  --help                 Show this message and exit.
+  -n, --name <LAMBDA>  Custom Environment Name
+  -v, --virtualenv     Install Environment Is Deprecated
+  -u, --url-path TEXT  Set Custom URL Path for your App
+  --help               Show this message and exit.
 
 ````
 **Success Install 🎊**
@@ -39,6 +38,7 @@ django-start project_name app_name
 
 ### Options
 - `-n or -name` to set custom environment name
+- `-u or --url-path` to set custom view url for your app
 
 ---
 ### django-version Command
@@ -55,9 +55,11 @@ Options:
 ```
 
 ### New
+- `-u or --url-path` set custom view url for your app
 - `django-version`  Display django-start version
 - `django-version --check-update`  Check New Update Available
 - `django-version --update`  update django-start
+
 ---
 ### Welcome to contribute ❤
 ### [PyPi](https://pypi.org/project/django-start-automate/) 🧑‍💻
