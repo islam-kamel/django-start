@@ -11,15 +11,12 @@ from models.utils.hellper import (executable_django_command, install_dep,
 class ProjectManager(Environment):
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        # self.__app_manager = AppManager(*args, **kwargs)
         self.__urls = os.path.join(
             self.get_workdir(), f'{self.get_project_name()}/urls.py'
         )
         self.__settings = os.path.join(
             self.get_workdir(), f'{self.get_project_name()}/settings.py'
         )
-        self.__other_dependencies = []
-        self.__line_list = []
 
     @property
     def urls_path(self) -> str: return self.__urls
@@ -27,34 +24,13 @@ class ProjectManager(Environment):
     @property
     def settings_path(self) -> str: return self.__settings
 
-    @property
-    def line_list(self) -> list: return self.__line_list
-
-    def index(self, value: str) -> int: return self.__line_list.index(value)
-
-    def update_lines_list(self, flag: str, value: str) -> None:
-        self.__line_list.insert(self.index(flag), value)
-
-    def replace_line(self, index, value) -> None:
-        self.__line_list[index] = value
-
-    @line_list.setter
-    def line_list(self, value: list) -> None:
-        self.__line_list = value
-
-    def read_file(self, file: str) -> list:
-        with open(file) as f:
-            self.__line_list = f.readlines()
-            f.close()
-        return self.__line_list
-
     def update_settings(self) -> None:
         self.read_file(self.settings_path)
-        if f"\t'{self.get_app_name()}',\n" not in self.__line_list:
+        if f"\t'{self.get_app_name()}',\n" not in self.line_list:
             click.secho("\U0001F527 Update Project Settings...", fg="blue")
-            self.update_lines_list("]\n", f"\t'{self.get_app_name()}',\n")
+            self.insert_line("]\n", f"\t'{self.get_app_name()}',\n")
             with open(self.settings_path, "w") as f:
-                f.write("".join(self.__line_list))
+                f.write("".join(self.line_list))
                 f.close()
         else:
             warn_stdout(f'"{self.get_app_name()}" is installed!')
@@ -62,14 +38,14 @@ class ProjectManager(Environment):
     def update_urls(self) -> None:
         self.read_file(self.urls_path)
         view_path = f"\tpath('', include('{self.get_app_name()}.urls')),\n"
-        if view_path not in self.__line_list:
+        if view_path not in self.line_list:
             self.replace_line(
                 self.index("from django.urls import path\n"),
                 "from django.urls import path, include\n",
             )
-            self.update_lines_list("]\n", view_path)
+            self.insert_line("]\n", view_path)
             with open(self.urls_path, "w") as f:
-                f.write("".join(self.__line_list))
+                f.write("".join(self.line_list))
                 f.close()
         else:
             warn_stdout("Urls Already Updated")
