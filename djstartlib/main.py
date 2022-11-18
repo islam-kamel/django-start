@@ -17,6 +17,7 @@ from models import DjangoStart
     type=lambda p: pathlib.Path(p).absolute(),
 )
 @click.option("-v", "--virtualenv", help="Install Environment Is Deprecated")
+@click.option('-u', '--url-path', help='Set Custom URL Path for your App')
 def main(**kwargs):
     """
     Prepare a new Django project quickly and automatically and,
@@ -38,7 +39,7 @@ def main(**kwargs):
     )
 
     app.setup_project()
-    app.setup_app()
+    app.setup_app(app_url=kwargs['url_path'] or '')
 
 
 if __name__ == "__main__":

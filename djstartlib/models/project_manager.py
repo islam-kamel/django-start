@@ -39,10 +39,17 @@ class ProjectManager(Environment):
         self.read_file(self.urls_path)
         view_path = f"\tpath('{path}', include('{self.get_app_name()}.urls')),\n"
         if view_path not in self.line_list:
-            self.replace_line(
-                self.index("from django.urls import path\n"),
-                "from django.urls import path, include\n",
-            )
+            main = 'from django.urls import path'
+            try:
+                self.replace_line(
+                    self.index(f'{main}\n'),
+                    "from django.urls import path, include\n",
+                )
+            except ValueError:
+                self.replace_line(
+                    self.index(f'{main}, include\n'),
+                    "from django.urls import path, include\n",
+                )
             self.insert_line("]\n", view_path)
             with open(self.urls_path, "w") as f:
                 f.write("".join(self.line_list))
