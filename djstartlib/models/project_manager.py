@@ -35,9 +35,9 @@ class ProjectManager(Environment):
         else:
             warn_stdout(f'"{self.get_app_name()}" is installed!')
 
-    def update_urls(self) -> None:
+    def update_urls(self, path: str) -> None:
         self.read_file(self.urls_path)
-        view_path = f"\tpath('', include('{self.get_app_name()}.urls')),\n"
+        view_path = f"\tpath('{path}', include('{self.get_app_name()}.urls')),\n"
         if view_path not in self.line_list:
             self.replace_line(
                 self.index("from django.urls import path\n"),
