@@ -77,23 +77,19 @@ def build_view_func():
     html_file
     :return: str
     """
-    s = Template(
-        f"""def home(request):
-    return render(request, '$app_name{os.sep}$html_file')
-    """
-    )
+    s = Template(f"""
+def home(request):
+    return render(request, '$app_name{os.sep}$html_file')""")
     return s
 
 
 def build_views_urls():
-    s = Template(
-        """from django.urls import path
+    s = Template("""from django.urls import path
 from . import views
 
 urlpatterns = [
     path('', views.$view_name)
-]
-    """
+]"""
     )
     return s
 
@@ -119,6 +115,5 @@ def generate_html():
         <a style="text-align: center" class="github-button" href="https://github.com/islam-kamel/django-start" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star islam-kamel/django-start on GitHub">Django-Start</a>
     </body>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
-</html>
-    """
+</html>"""
     return s
