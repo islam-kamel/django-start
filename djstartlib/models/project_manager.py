@@ -29,31 +29,22 @@ class ProjectManager(Environment):
         if f"\t'{self.get_app_name()}',\n" not in self.line_list:
             click.secho("\U0001F527 Update Project Settings...", fg="blue")
             self.insert_line("]\n", f"\t'{self.get_app_name()}',\n")
-            with open(self.settings_path, "w") as f:
-                f.write("".join(self.line_list))
-                f.close()
+            self.write(self.settings_path)
         else:
             warn_stdout(f'"{self.get_app_name()}" is installed!')
 
     def update_urls(self, path: str) -> None:
         self.read_file(self.urls_path)
         view_path = f"\tpath('{path}', include('{self.get_app_name()}.urls')),\n"
+        import_statment = 'from django.urls import path, include\n'
+        if import_statment not in self.line_list:
+            self.replace_line(
+                self.index('from django.urls import path\n'),
+                import_statment
+            )
         if view_path not in self.line_list:
-            main = 'from django.urls import path'
-            try:
-                self.replace_line(
-                    self.index(f'{main}\n'),
-                    "from django.urls import path, include\n",
-                )
-            except ValueError:
-                self.replace_line(
-                    self.index(f'{main}, include\n'),
-                    "from django.urls import path, include\n",
-                )
             self.insert_line("]\n", view_path)
-            with open(self.urls_path, "w") as f:
-                f.write("".join(self.line_list))
-                f.close()
+            self.write(self.urls_path)
         else:
             warn_stdout("Urls Already Updated")
 
