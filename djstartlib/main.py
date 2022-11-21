@@ -2,8 +2,8 @@
 import pathlib
 
 import click
-from djstart_interface import DjangoStart
-from hellper import create_env
+
+from models import DjangoStart
 
 
 @click.command()
@@ -16,7 +16,8 @@ from hellper import create_env
     help="Custom Environment Name",
     type=lambda p: pathlib.Path(p).absolute(),
 )
-@click.option("-v", "--virtualenv", help="Install Environment Is Deprecated")
+@click.option("-v", "--virtualenv", is_flag=True, help="Install Environment Is Deprecated")
+@click.option('-u', '--url-path', help='Set Custom URL Path for your App')
 def main(**kwargs):
     """
     Prepare a new Django project quickly and automatically and,
@@ -28,14 +29,18 @@ def main(**kwargs):
             fg="white",
             bg="red",
         )
-        click.secho("Creating a virtual environment is a best practice!", fg="green")
+        click.secho("Creating a virtual environment is a best practice!",
+                    fg="green")
 
-    create_env(kwargs["name"])
-    django_start = DjangoStart(
-        app_name=kwargs["app_name"], core_name=kwargs["project_name"]
+    app = DjangoStart(
+        kwargs['name'],
+        app=kwargs['app_name'],
+        project=kwargs['project_name']
     )
-    django_start.setup_project()
-    django_start.setup_app()
+
+    app.setup_project()
+    app.setup_app(app_url=kwargs['url_path'] or '')
+
 
 if __name__ == "__main__":
     main()

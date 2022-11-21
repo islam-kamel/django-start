@@ -23,11 +23,13 @@ def current_version():
 
 def check_available():
     try:
-        ver_name, ver_int = latest_version()
+        var_name, var_int = latest_version()
         current = current_version()
-        if sum(ver_int) > sum(current):
-            print(f"New Update Available {ver_name}")
+        if sum(var_int) > sum(current):
+            print(f"New Update Available {var_name}")
             return True
+        else:
+            print("You have the latest version")
 
     except urllib.error.URLError:
         sys.exit(1)
@@ -35,8 +37,8 @@ def check_available():
 
 
 @click.command()
-@click.option("--update")
-@click.option('--check-update')
+@click.option("--update", is_flag=True, help="Install Latest Version")
+@click.option('--check-update', is_flag=True, help="Check Update Available")
 def main(update, check_update):
     """
     Display current versio,
