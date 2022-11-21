@@ -5,7 +5,7 @@ from urllib import request
 import json
 import click
 
-version = "1.1.5 (beta)"
+version = "1.1.6 (beta)"
 
 
 def latest_version():
@@ -18,7 +18,7 @@ def latest_version():
 
 
 def current_version():
-    return [1, 1, 5]
+    return [1, 1, 6]
 
 
 def check_available():
