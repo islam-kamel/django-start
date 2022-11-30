@@ -35,8 +35,9 @@ def executable_python_command(command):
             shell=True,
         )
         if proc:
+            msg = 'check your internet connection or installed python3-env and python3-pip'
             if platform.system() != 'Windows':
-                click.secho("check your installed python3-env and python3-pip", fg="white", bg="red")
+                click.secho(msg, fg="white", bg="red")
             sys.exit(1)
     except KeyError:
         click.secho("Be sure to set up PYTHONPATH", fg="white", bg="red")
