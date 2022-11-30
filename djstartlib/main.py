@@ -16,8 +16,10 @@ from models import DjangoStart
     help="Custom Environment Name",
     type=lambda p: pathlib.Path(p).absolute(),
 )
-@click.option("-v", "--virtualenv", is_flag=True, help="Install Environment Is Deprecated")
-@click.option('-u', '--url-path', help='Set Custom URL Path for your App')
+@click.option(
+    "-v", "--virtualenv", is_flag=True, help="Install Environment Is Deprecated"
+)
+@click.option("-u", "--url-path", help="Set Custom URL Path for your App")
 def main(**kwargs):
     """
     Prepare a new Django project quickly and automatically and,
@@ -29,17 +31,14 @@ def main(**kwargs):
             fg="white",
             bg="red",
         )
-        click.secho("Creating a virtual environment is a best practice!",
-                    fg="green")
+        click.secho("Creating a virtual environment is a best practice!", fg="green")
 
     app = DjangoStart(
-        kwargs['name'],
-        app=kwargs['app_name'],
-        project=kwargs['project_name']
+        kwargs["name"], app=kwargs["app_name"], project=kwargs["project_name"]
     )
 
     app.setup_project()
-    app.setup_app(app_url=kwargs['url_path'] or '')
+    app.setup_app(app_url=kwargs["url_path"] or "")
 
 
 if __name__ == "__main__":

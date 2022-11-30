@@ -1,29 +1,38 @@
 import os
-import click
-import subprocess
 import platform
+import subprocess
 import sys
 from string import Template
 
+import click
+
 
 def warn_stdout(message):
-    print(f"⚠️ \033[93mWARNING: {message}\033[0m")
+    print(f"⚠️  \033[93mWARNING: {message}\033[0m")
 
 
-def create_env(env_name_path):
+def print_status(msg):
+    click.secho(msg, fg="blue")
+
+
+def create_env(env):
     click.secho("\U0001F984 Create Environment...", fg="blue")
+
     subprocess.call(
-        f"{sys.executable} -m venv {env_name_path}",
+        f"{sys.executable} -m venv {env}",
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
         shell=True,
     )
+
     if platform.system() == "Windows":
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'Scripts/python.exe') 
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'Scripts/django-admin.exe'))
+        os.environ["PYTHONEXEC"] = os.path.join(env, "Scripts/python.exe")
+        os.environ.setdefault(
+            "DJANGOADMIN", os.path.join(env, "Scripts/django-admin.exe")
+        )
     else:
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'bin/python3')
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'bin/django-admin'))
+        os.environ["PYTHONEXEC"] = os.path.join(env, "bin/python3")
+        os.environ.setdefault("DJANGOADMIN", os.path.join(env, "bin/django-admin"))
 
 
 def executable_python_command(command):
@@ -35,8 +44,8 @@ def executable_python_command(command):
             shell=True,
         )
         if proc:
-            msg = 'check your internet connection or installed python3-env and python3-pip'
-            if platform.system() != 'Windows':
+            msg = "check your internet connection or installed python3-env and python3-pip"
+            if platform.system() != "Windows":
                 click.secho(msg, fg="white", bg="red")
             sys.exit(1)
     except KeyError:
@@ -78,14 +87,17 @@ def build_view_func():
     html_file
     :return: str
     """
-    s = Template(f"""
+    s = Template(
+        f"""
 def home(request):
-    return render(request, '$app_name{os.sep}$html_file')""")
+    return render(request, '$app_name{os.sep}$html_file')"""
+    )
     return s
 
 
 def build_views_urls():
-    s = Template("""from django.urls import path
+    s = Template(
+        """from django.urls import path
 from . import views
 
 urlpatterns = [

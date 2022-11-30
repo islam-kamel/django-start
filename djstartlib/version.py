@@ -38,7 +38,7 @@ def check_available():
 
 @click.command()
 @click.option("--update", is_flag=True, help="Install Latest Version")
-@click.option('--check-update', is_flag=True, help="Check Update Available")
+@click.option("--check-update", is_flag=True, help="Check Update Available")
 def main(update, check_update):
     """
     Display current versio,
