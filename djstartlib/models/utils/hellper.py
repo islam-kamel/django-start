@@ -23,16 +23,20 @@ HTML = """<!DOCTYPE html>
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 </html>"""
 
-PATTERNS = Template("""from django.urls import path
+PATTERNS = Template(
+    """from django.urls import path
 from . import views
 
 urlpatterns = [
     path('', views.$view_name)
-]""")
+]"""
+)
 
-VIEW_FUNC = Template(f"""
+VIEW_FUNC = Template(
+    f"""
 def home(request):
-    return render(request, r'$app_name{os.sep}$html_file')""")
+    return render(request, r'$app_name{os.sep}$html_file')"""
+)
 
 
 def warn_stdout(message):
@@ -72,7 +76,9 @@ def create_env(env):
         )
     else:
         os.environ["PYTHONEXEC"] = os.path.join(env, "bin/python3")
-        os.environ.setdefault("DJANGOADMIN", os.path.join(env, "bin/django-admin"))
+        os.environ.setdefault(
+            "DJANGOADMIN", os.path.join(env, "bin/django-admin")
+        )
 
 
 def executable_python_command(command):
