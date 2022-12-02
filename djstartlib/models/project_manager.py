@@ -27,16 +27,19 @@ class ProjectManager(Environment):
     @staticmethod
     def upgrade_pip() -> None:
         print_status("\U0001F4E6 Upgrade Pip...")
+
         upgrade_pip()
 
     @staticmethod
     def install_dep() -> None:
         print_status("\U000023F3 Install Dependencies...")
+
         install_dep()
 
     @staticmethod
     def requirements_extract() -> None:
         print_status("\U0001F4C3 Generate Requirements.txt...")
+
         requirements_extract()
 
     def create_project(self) -> None:
@@ -59,7 +62,6 @@ class ProjectManager(Environment):
         print_status("\U0001F527 Update Project Settings...")
 
         self.read_file(self.settings_path)
-
         if f"\t'{self.app_name}',\n" not in self.line_list:
             self.insert_line("]\n", f"\t'{self.app_name}',\n")
             self.write(self.settings_path)
@@ -71,7 +73,6 @@ class ProjectManager(Environment):
 
         self.read_file(self.urls_path)
         self.update_import_statment()
-
         if view_path not in self.line_list:
             self.insert_line("]\n", view_path)
             self.write(self.urls_path)

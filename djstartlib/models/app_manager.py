@@ -44,6 +44,7 @@ class AppManager(Environment):
 
     def create_templates(self) -> None:
         print_status(f"\U0001F389 Generate '{self.app_name}' Index Page...")
+
         self.create_templates_dir()
         self.create_html_page()
 
@@ -65,14 +66,11 @@ class AppManager(Environment):
         print_status(f"\U0001F304 Create '{self.app_name}' Views...")
 
         self.read_file(self.views_path)
-
         if "# Create your views here.\n" in self.line_list:
             block_of_code = build_view_func().substitute(
                 app_name=self.app_name, html_file="index.html"
             )
-
             self.replace_line(self.index("# Create your views here.\n"), block_of_code)
-
             self.write(self.views_path)
 
         else:

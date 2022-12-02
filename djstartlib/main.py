@@ -36,7 +36,6 @@ def main(**kwargs):
     app = DjangoStart(
         kwargs["name"], app=kwargs["app_name"], project=kwargs["project_name"]
     )
-
     app.setup_project()
     app.setup_app(app_url=kwargs["url_path"] or "")
 

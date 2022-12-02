@@ -6,6 +6,34 @@ from string import Template
 
 import click
 
+HTML = """<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Django Start</title>
+        <style>
+            *{text-align: center}
+            div{display:flex; justify-content:center}
+        </style>
+    </head>
+    <body>
+        <h1 style="text-align: center">Hello, Django-Start</h1>
+        <a style="text-align: center" class="github-button" href="https://github.com/islam-kamel/django-start" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star islam-kamel/django-start on GitHub">Django-Start</a>
+    </body>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+</html>"""
+
+PATTERNS = Template("""from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.$view_name)
+]""")
+
+VIEW_FUNC = Template(f"""
+def home(request):
+    return render(request, r'$app_name{os.sep}$html_file')""")
+
 
 def warn_stdout(message):
     print(f"⚠️  \033[93mWARNING: {message}\033[0m")
@@ -13,6 +41,18 @@ def warn_stdout(message):
 
 def print_status(msg):
     click.secho(msg, fg="blue")
+
+
+def build_view_func():
+    return VIEW_FUNC
+
+
+def build_views_urls():
+    return PATTERNS
+
+
+def generate_html():
+    return HTML
 
 
 def create_env(env):
@@ -78,55 +118,3 @@ def install_dep():
 
 def requirements_extract():
     executable_python_command("-m pip freeze > requirements.txt")
-
-
-def build_view_func():
-    """
-    :param
-    app_name
-    html_file
-    :return: str
-    """
-    s = Template(
-        f"""
-def home(request):
-    return render(request, '$app_name{os.sep}$html_file')"""
-    )
-    return s
-
-
-def build_views_urls():
-    s = Template(
-        """from django.urls import path
-from . import views
-
-urlpatterns = [
-    path('', views.$view_name)
-]"""
-    )
-    return s
-
-
-def generate_html():
-    """
-    :return:
-    Html Code
-    """
-
-    s = """<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Django Start</title>
-        <style>
-            *{text-align: center}
-            div{display:flex; justify-content:center}
-        </style>
-    </head>
-    <body>
-        <h1 style="text-align: center">Hello, Django-Start</h1>
-        <a style="text-align: center" class="github-button" href="https://github.com/islam-kamel/django-start" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star islam-kamel/django-start on GitHub">Django-Start</a>
-    </body>
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
-</html>"""
-    return s
