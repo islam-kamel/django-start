@@ -41,8 +41,8 @@ def check_available():
 @click.option('--check-update', is_flag=True, help="Check Update Available")
 def main(update, check_update):
     """
-    Display current versio,
-    check new update and update django-start
+    Display current version,
+    and check for new updates and update django-start
     """
     if check_update:
         return check_available()
