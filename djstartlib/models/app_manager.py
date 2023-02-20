@@ -3,7 +3,7 @@ import os
 import click
 
 from models.utils import Environment
-from models.utils.hellper import (build_view_func, build_views_urls,
+from models.utils.helper import (build_view_func, build_views_urls,
                                   executable_python_command, generate_html,
                                   warn_stdout)
 

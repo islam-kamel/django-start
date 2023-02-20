@@ -3,7 +3,7 @@ import os
 import click
 
 from models.utils import Environment
-from models.utils.hellper import (executable_django_command, install_dep,
+from models.utils.helper import (executable_django_command, install_dep,
                                   requirements_extract, upgrade_pip,
                                   warn_stdout)
 
