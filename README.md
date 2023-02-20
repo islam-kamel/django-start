@@ -46,8 +46,8 @@ django-start project_name app_name
 ```shell
 Usage: django-version [OPTIONS]
 
-Display current versio,
-check new update and update django-start
+Display current version,
+and check for new updates and update django-start
 
 Options:
   --update / --check-update TEXT
