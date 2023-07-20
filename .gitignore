@@ -2,12 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
-test_*
 
 # C extensions
 *.so
-*test*
-test/
 # Distribution / packaging
 .Python
 build/
@@ -138,3 +135,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+.idea/
+test_environment/
