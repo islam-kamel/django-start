@@ -31,6 +31,7 @@ def get_dirs(path, full_path=False):
 
 def find_specific_dir(path, dirs):
     """
+    Find Specific Directory in a path
     :param path: str
     :param dirs: list
     :return: str or None
@@ -59,3 +60,12 @@ def read_file(path):
         f.close()
 
     return line_list
+
+
+def is_exist(path):
+    """
+    Check if path exists
+    :param path: str
+    :return: bool
+    """
+    return os.path.exists(normalize_path(path))
