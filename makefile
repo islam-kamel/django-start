@@ -1,5 +1,7 @@
 build:
 	py -m build
 
-local:
-	py -m pip install .
+test:
+	coverage run -m pytest
+	coverage html
+	coverage report -m
