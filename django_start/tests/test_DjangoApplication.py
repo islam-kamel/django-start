@@ -63,6 +63,20 @@ class TestDjangoApplication(unittest.TestCase):
             self.assertEqual(lines[3], "def index(request):\n")
             self.assertEqual(lines[4], f'    return render(request, "{self.app_name}/index.html")\n')
 
+    def test_create_urls(self):
+        self.django_app.create_django_app()
+        self.django_app.create_urls()
+        self.assertTrue(os.path.isfile(os.path.join(self.django_app.app_dir, "urls.py")))
+        with open(os.path.join(self.django_app.app_dir, "urls.py"), "r") as f:
+            lines = f.readlines()
+            self.assertEqual(lines[0], "from django.urls import path\n")
+            self.assertEqual(lines[1], "\n")
+            self.assertEqual(lines[2], "from . import views\n")
+            self.assertEqual(lines[3], "\n")
+            self.assertEqual(lines[4], "urlpatterns = [\n")
+            self.assertEqual(lines[5], '    path("", views.index, name="index"),\n')
+            self.assertEqual(lines[6], "]\n")
+
     def tearDown(self) -> None:
         shutil.rmtree(self.django_app.app_dir, ignore_errors=True)
         shutil.rmtree(self.container, ignore_errors=True)

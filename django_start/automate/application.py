@@ -1,7 +1,7 @@
 import os
 import black
 from django_start.automate.settings import AppSettings
-from django_start.automate.templates import HTML_TEMPLATE, VIEW_FUNC_TEMPLATE
+from django_start.automate.templates import HTML_TEMPLATE, VIEW_FUNC_TEMPLATE, URLS_TEMPLATE
 from django_start.utils.helpers import run_command, create_dir, write_file
 
 
@@ -52,3 +52,14 @@ class DjangoApplication(AppSettings):
         view = black.format_str(view, mode=black.FileMode())
 
         write_file(view_function, view, force=True)
+
+    def create_urls(self):
+        """
+        Create urls.py file
+        :return: None
+        """
+        urls_path = os.path.join(self.app_dir, "urls.py")
+
+        urls = black.format_str(URLS_TEMPLATE, mode=black.FileMode())
+
+        write_file(urls_path, urls, force=True)
