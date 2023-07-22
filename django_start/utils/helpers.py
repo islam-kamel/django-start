@@ -83,3 +83,17 @@ def write_file(path, data, force=False):
     with open(path, "w") as f:
         f.write(data)
         f.close()
+
+
+def create_dir(path):
+    """
+    Create a directory
+    :param path: str
+    :return: None
+    """
+    norm_path = normalize_path(path)
+    # check if directory exists
+    if is_exist(norm_path):
+        raise FileExistsError(f"Directory {path} already exists")
+
+    os.mkdir(norm_path)
