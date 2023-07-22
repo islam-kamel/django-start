@@ -9,6 +9,15 @@ def normalize_path(path):
     return os.path.normpath(path)
 
 
+def is_exist(path):
+    """
+    Check if path exists
+    :param path: str
+    :return: bool
+    """
+    return os.path.exists(normalize_path(path))
+
+
 def get_dirs(path, full_path=False):
     """
     Read all directories in a path
@@ -20,7 +29,7 @@ def get_dirs(path, full_path=False):
     norm_path = normalize_path(path)
 
     # check if path exists
-    if not os.path.exists(norm_path):
+    if not is_exist(norm_path):
         raise FileNotFoundError(f"Path {path} not found")
 
     if full_path:
@@ -59,15 +68,6 @@ def read_file(path):
         return line_list
 
 
-def is_exist(path):
-    """
-    Check if path exists
-    :param path: str
-    :return: bool
-    """
-    return os.path.exists(normalize_path(path))
-
-
 def write_file(path, data, force=False):
     """
     Write data to a file
@@ -92,6 +92,7 @@ def create_dir(path):
     :return: None
     """
     norm_path = normalize_path(path)
+
     # check if directory exists
     if is_exist(norm_path):
         raise FileExistsError(f"Directory {path} already exists")
