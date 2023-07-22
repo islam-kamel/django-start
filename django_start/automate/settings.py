@@ -30,6 +30,7 @@ class AppSettings(Settings):
     def create_django_app(self, path=''):
         """
         Create django app
+        :param path: str
         :return: None
         """
         proc = run_command(f"django-admin startapp {self.app_name} {path}")
