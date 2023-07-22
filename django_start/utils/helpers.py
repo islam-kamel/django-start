@@ -53,13 +53,10 @@ def read_file(path):
     if not os.path.isfile(normalize_path(path)):
         raise FileNotFoundError(f"File {path} not found")
 
-    line_list = []
-
     with open(path, "r") as f:
         line_list = f.readlines()
         f.close()
-
-    return line_list
+        return line_list
 
 
 def is_exist(path):
@@ -69,3 +66,20 @@ def is_exist(path):
     :return: bool
     """
     return os.path.exists(normalize_path(path))
+
+
+def write_file(path, data, force=False):
+    """
+    Write data to a file
+    :param force:
+    :param path: str
+    :param data: str
+    :return: None
+    """
+    # check if file exists
+    if is_exist(path) and not force:
+        raise FileExistsError(f"File {path} already exists")
+
+    with open(path, "w") as f:
+        f.write(data)
+        f.close()
