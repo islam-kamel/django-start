@@ -1,4 +1,6 @@
+import asyncio
 import os
+import subprocess
 
 
 def normalize_path(path):
@@ -98,3 +100,12 @@ def create_dir(path):
         raise FileExistsError(f"Directory {path} already exists")
 
     os.mkdir(norm_path)
+
+
+def run_command(command):
+    """
+    Run a command in a subprocess and return a CompletedProcess instance
+    :param command:
+    :return: subprocess.CompletedProcess
+    """
+    return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
