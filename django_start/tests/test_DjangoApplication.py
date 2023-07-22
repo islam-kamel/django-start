@@ -9,6 +9,7 @@ class TestDjangoApplication(unittest.TestCase):
     def setUp(self):
         self.app_name = "test_app"
         self.django_app = DjangoApplication(app_name=self.app_name)
+        self.container = "./container"
 
     def test_create_django_app(self):
         self.django_app.create_django_app()
@@ -27,15 +28,41 @@ class TestDjangoApplication(unittest.TestCase):
         shutil.rmtree(self.django_app.app_dir)
 
     def test_create_django_app_with_path(self):
-        container = "./container"
-        os.mkdir(container)
-        self.django_app.create_django_app(container)
-        self.assertTrue(os.path.isdir(container))
-        shutil.rmtree(container)
+        os.mkdir(self.container)
+        self.django_app.create_django_app(self.container)
+        self.assertTrue(os.path.isdir(self.container))
 
     def test_create_django_app_exception(self):
         with self.assertRaises(RuntimeError):
             self.django_app.create_django_app("notValidPath")
 
-    def tearDown(self):
-        pass
+    def test_create_templates_dir(self):
+        self.django_app.create_django_app()
+        self.django_app.create_templates_dir()
+        self.assertTrue(os.path.isdir(os.path.join(self.django_app.app_dir, "templates")))
+        self.assertTrue(os.path.isdir(os.path.join(self.django_app.app_dir, "templates", self.app_name)))
+
+        shutil.rmtree(self.django_app.app_dir)
+
+    def test_create_index_html(self):
+        self.django_app.create_django_app()
+        self.django_app.create_templates_dir()
+        self.django_app.create_index_html()
+        self.assertTrue(os.path.isfile(os.path.join(self.django_app.app_dir, "templates", self.app_name, "index.html")))
+
+    def test_create_view_function(self):
+        self.django_app.create_django_app()
+        self.django_app.create_view_function()
+        self.assertTrue(os.path.isfile(os.path.join(self.django_app.app_dir, "views.py")))
+
+        with open(os.path.join(self.django_app.app_dir, "views.py"), "r") as f:
+            lines = f.readlines()
+            self.assertEqual(lines[0], "from django.shortcuts import render\n")
+            self.assertEqual(lines[1], "\n")
+            self.assertEqual(lines[2], "\n")
+            self.assertEqual(lines[3], "def index(request):\n")
+            self.assertEqual(lines[4], f'    return render(request, "{self.app_name}/index.html")\n')
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.django_app.app_dir, ignore_errors=True)
+        shutil.rmtree(self.container, ignore_errors=True)

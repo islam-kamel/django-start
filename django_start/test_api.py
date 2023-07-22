@@ -1,1 +1,0 @@
-from django_start.automate.settings import AppSettings
