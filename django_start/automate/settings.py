@@ -1,6 +1,6 @@
 import os
 
-from django_start.utils.helpers import normalize_path, is_exist, run_command
+from django_start.utils.helpers import normalize_path, is_exist
 
 
 class Settings:
@@ -26,17 +26,6 @@ class AppSettings(Settings):
         # check if exist dir with app_name
         if is_exist(self.app_dir):
             raise FileExistsError(f"App with name {self.app_name} already exist")
-
-    def create_django_app(self, path=''):
-        """
-        Create django app
-        :param path: str
-        :return: None
-        """
-        proc = run_command(f"django-admin startapp {self.app_name} {path}")
-
-        if proc.returncode != 0:
-            raise RuntimeError(f"Error while creating app {self.app_name}\n\tDetails: {proc.stderr}")
 
 
 class ProjectSettings(Settings):
