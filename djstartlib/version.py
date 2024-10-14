@@ -9,7 +9,9 @@ version = "1.1.6 (beta)"
 
 
 def latest_version():
-    res = request.urlopen("https://api.github.com/repos/islam-kamel/django-start/tags")
+    res = request.urlopen(
+        "https://api.github.com/repos/islam-kamel/django-start/tags"
+    )
     version_name = json.load(res)[0]["name"]
     version_int = version_name.split(".")
     version_int[-1] = version_int[-1].split("-")[0]
@@ -38,7 +40,7 @@ def check_available():
 
 @click.command()
 @click.option("--update", is_flag=True, help="Install Latest Version")
-@click.option('--check-update', is_flag=True, help="Check Update Available")
+@click.option("--check-update", is_flag=True, help="Check Update Available")
 def main(update, check_update):
     """
     Display current version,
