@@ -14,7 +14,7 @@ class DjangoStart:
         self.project_cls.create_project()
         self.project_cls.requirements_extract()
 
-    def setup_app(self, app_url: str = ''):
+    def setup_app(self, app_url: str = ""):
         self.app_cls.create_app()
         self.project_cls.update_settings()
         self.project_cls.update_urls(path=app_url)
