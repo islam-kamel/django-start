@@ -11,7 +11,7 @@ def warn_stdout(message):
 
 
 def create_env(env_name_path):
-    click.secho("\U0001F984 Create Environment...", fg="blue")
+    click.secho("\U0001f984 Create Environment...", fg="blue")
     subprocess.call(
         f"{sys.executable} -m venv {env_name_path}",
         stdout=subprocess.DEVNULL,
@@ -19,11 +19,18 @@ def create_env(env_name_path):
         shell=True,
     )
     if platform.system() == "Windows":
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'Scripts/python.exe') 
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'Scripts/django-admin.exe'))
+        os.environ["PYTHONEXEC"] = os.path.join(
+            env_name_path, "Scripts/python.exe"
+        )
+        os.environ.setdefault(
+            "DJANGOADMIN",
+            os.path.join(env_name_path, "Scripts/django-admin.exe"),
+        )
     else:
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'bin/python3')
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'bin/django-admin'))
+        os.environ["PYTHONEXEC"] = os.path.join(env_name_path, "bin/python3")
+        os.environ.setdefault(
+            "DJANGOADMIN", os.path.join(env_name_path, "bin/django-admin")
+        )
 
 
 def executable_python_command(command):
@@ -35,8 +42,12 @@ def executable_python_command(command):
             shell=True,
         )
         if proc:
-            if platform.system() != 'Windows':
-                click.secho("check your installed python3-env and python3-pip", fg="white", bg="red")
+            if platform.system() != "Windows":
+                click.secho(
+                    "check your installed python3-env and python3-pip",
+                    fg="white",
+                    bg="red",
+                )
             sys.exit(1)
     except KeyError:
         click.secho("Be sure to set up PYTHONPATH", fg="white", bg="red")
@@ -89,8 +100,7 @@ from . import views
 
 urlpatterns = [
     path('', views.$view_name)
-]"""
-    )
+]""")
     return s
 
 
