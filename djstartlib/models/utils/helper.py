@@ -19,11 +19,18 @@ def create_env(env_name_path):
         shell=True,
     )
     if platform.system() == "Windows":
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'Scripts/python.exe') 
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'Scripts/django-admin.exe'))
+        os.environ["PYTHONEXEC"] = os.path.join(
+            env_name_path, "Scripts/python.exe"
+        )
+        os.environ.setdefault(
+            "DJANGOADMIN",
+            os.path.join(env_name_path, "Scripts/django-admin.exe"),
+        )
     else:
-        os.environ['PYTHONEXEC'] = os.path.join(env_name_path, 'bin/python3')
-        os.environ.setdefault('DJANGOADMIN', os.path.join(env_name_path, 'bin/django-admin'))
+        os.environ["PYTHONEXEC"] = os.path.join(env_name_path, "bin/python3")
+        os.environ.setdefault(
+            "DJANGOADMIN", os.path.join(env_name_path, "bin/django-admin")
+        )
 
 
 def executable_python_command(command):
@@ -35,8 +42,12 @@ def executable_python_command(command):
             shell=True,
         )
         if proc:
-            if platform.system() != 'Windows':
-                click.secho("check your installed python3-env and python3-pip", fg="white", bg="red")
+            if platform.system() != "Windows":
+                click.secho(
+                    "check your installed python3-env and python3-pip",
+                    fg="white",
+                    bg="red",
+                )
             sys.exit(1)
     except KeyError:
         click.secho("Be sure to set up PYTHONPATH", fg="white", bg="red")
@@ -77,14 +88,17 @@ def build_view_func():
     html_file
     :return: str
     """
-    s = Template(f"""
+    s = Template(
+        f"""
 def home(request):
-    return render(request, '$app_name{os.sep}$html_file')""")
+    return render(request, '$app_name{os.sep}$html_file')"""
+    )
     return s
 
 
 def build_views_urls():
-    s = Template("""from django.urls import path
+    s = Template(
+        """from django.urls import path
 from . import views
 
 urlpatterns = [
@@ -100,20 +114,28 @@ def generate_html():
     Html Code
     """
 
-    s = """<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Django Start</title>
-        <style>
-            *{text-align: center}
-            div{display:flex; justify-content:center}
-        </style>
-    </head>
-    <body>
-        <h1 style="text-align: center">Hello, Django-Start</h1>
-        <a style="text-align: center" class="github-button" href="https://github.com/islam-kamel/django-start" data-color-scheme="no-preference: light; light: light; dark: dark;" data-size="large" data-show-count="true" aria-label="Star islam-kamel/django-start on GitHub">Django-Start</a>
-    </body>
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
-</html>"""
+    s = (
+        "<!DOCTYPE html>\n"
+        '<html lang="en">\n'
+        "    <head>\n"
+        '        <meta charset="UTF-8">\n'
+        "        <title>Django Start</title>\n"
+        "        <style>\n"
+        "            *{text-align: center}\n"
+        "            div{display:flex; justify-content:center}\n"
+        "        </style>\n"
+        "    </head>\n"
+        "    <body>\n"
+        '        <h1 style="text-align: center">Hello, Django-Start</h1>\n'
+        '        <a style="text-align: center" class="github-button" '
+        'href="https://github.com/islam-kamel/django-start" '
+        'data-color-scheme="no-preference: light; light: light; dark: dark;" '
+        'data-size="large" data-show-count="true" '
+        'aria-label="Star islam-kamel/django-start on GitHub">'
+        "Django-Start</a>\n"
+        "    </body>\n"
+        "    <script async defer "
+        'src="https://buttons.github.io/buttons.js"></script>\n'
+        "</html>"
+    )
     return s
