@@ -980,3 +980,20 @@ These rules apply to every agent task, including documentation, tests, infrastru
     Words such as `verified`, `complete`, `fully passing`, `deterministic`, and `CI green` may only be used when the corresponding verification was actually executed successfully.
 
     Final agent reports must include the relevant environment and commands used to establish those claims.
+
+17. **Syntax validation is not semantic or platform validation.**
+
+    For configuration consumed by an external tool or platform, agents must validate at the strongest practical layer available.
+
+    Parser-level success (such as YAML, JSON, or TOML syntax parsing) proves only serialization well-formedness, not that the configuration is semantically valid or acceptable to the target platform.
+
+    Examples:
+
+    * `.github/dependabot.yml`: YAML syntax + Dependabot schema/platform semantics
+    * `.github/workflows/*.yml`: YAML syntax + GitHub Actions semantics
+    * `pyproject.toml`: TOML syntax + package/build validation
+    * `pytest.ini`: config syntax + actual pytest collection/execution
+
+    An agent must not claim a configuration is `verified` merely because its serialization format parses successfully.
+
+    When native platform validation is unavailable locally, inspect the official schema/documentation and report the remaining validation boundary explicitly.
