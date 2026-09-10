@@ -2,11 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
-test_*
 
 # C extensions
 *.so
-*test*
 test/
 # Distribution / packaging
 .Python
