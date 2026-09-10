@@ -3,7 +3,7 @@
 ## 1. Executive Summary
 
 This document establishes the authoritative behavioral baseline for `django-start` version 1.1.6.
-Prior to undertaking architectural modernization and refactoring for version 2.0, the complete observable behavior of version 1.1.6 was characterized through a deterministic test suite consisting of 42 tests across 8 test modules.
+Prior to undertaking architectural modernization and refactoring for version 2.0, the identified observable behavior contracts of version 1.1.6 were characterized through a deterministic test suite consisting of 44 tests across 8 test modules.
 
 In accordance with the project engineering rules:
 - Production code in `djstartlib/` was kept strictly immutable.
@@ -25,12 +25,13 @@ The distribution package `django-start-automate` 1.1.6 defines two CLI console e
 - `django-start = djstartlib.main:main`: Primary CLI for scaffolding projects and applications.
 - `django-version = djstartlib.version:main`: CLI for displaying version and checking/installing updates.
 
-Both entry point callables are verified as importable and executable without side effects in `tests/unit/test_bootstrap.py`.
+Both entry point callables are verified as importable and resolve to callables without side effects upon import in `tests/unit/test_bootstrap.py` (validating entry point symbol resolution; execution of the full CLI flows is characterized in `tests/unit/test_cli.py` and `tests/unit/test_version.py`).
 
 ### 2.3 Platform & Filesystem Assumptions
 - **Virtualenv Executable Paths**: In `djstartlib/models/utils/helper.py` (`create_env`), path layout is determined via `platform.system()`:
-  - Windows: sets `PYTHONEXEC` to `<env>\Scripts\python.exe` and `DJANGOADMIN` to `<env>\Scripts\django-admin.exe`.
+  - Windows: sets `PYTHONEXEC` to `<env>\Scripts/python.exe` and `DJANGOADMIN` to `<env>\Scripts/django-admin.exe`.
   - Non-Windows (Linux / macOS): sets `PYTHONEXEC` to `<env>/bin/python3` and `DJANGOADMIN` to `<env>/bin/django-admin`.
+  - **Environment Variable Mutation Quirk**: `create_env` unconditionally overwrites `PYTHONEXEC` (`os.environ['PYTHONEXEC'] = ...`), whereas `DJANGOADMIN` uses `os.environ.setdefault('DJANGOADMIN', ...)`. If `DJANGOADMIN` was pre-set in the environment, its existing value is preserved rather than updated to the new environment path.
 - **Directory Layout**: Assumes a flat project structure where the Django project directory and application directory are siblings created inside the current working directory.
 - **Encoding**: Files are opened with default system encoding without explicit `encoding="utf-8"`, creating cross-platform encoding vulnerabilities on non-UTF-8 default platforms (e.g., Windows CP1252).
 
@@ -46,7 +47,7 @@ Each contract is classified as:
 
 | ID | Surface | Input / Precondition | Observed Behavior | Classification | Test Target | Notes |
 |---|---|---|---|---|---|---|
-| `BC-BOOT-01` | Package / Import | `import djstartlib.main`, `import djstartlib.version` | Entry point modules are importable and callables resolve without side effects | legacy-reliance | `tests/unit/test_bootstrap.py` | Validates entry point symbols bound in `setup.cfg`. |
+| `BC-BOOT-01` | Package / Import | `import djstartlib.main`, `import djstartlib.version` | Entry point modules are importable and callables resolve without side effects | legacy-reliance | `tests/unit/test_bootstrap.py` | Validates entry point symbols bound in `setup.cfg` without invoking installed console scripts. |
 | `BC-CLI-01` | CLI (`django-start`) | `django-start myproject myapp` | Resolves virtualenv path to absolute `env/`, initializes `DjangoStart`, calls `setup_project()` and `setup_app(app_url="")` | intended | `tests/unit/test_cli.py` | Standard default scaffolding invocation. |
 | `BC-CLI-02` | CLI (`django-start`) | `django-start myproject myapp -n custom_env` | Converts `-n`/`--name` option to absolute `pathlib.Path` and passes as env path | intended | `tests/unit/test_cli.py` | Supports custom virtual environment directory names. |
 | `BC-CLI-03` | CLI (`django-start`) | `django-start myproject myapp -v` | Prints deprecation notice `Please Don't Use This Option is Deprecated` and continues execution | legacy-reliance | `tests/unit/test_cli.py` | Flag is deprecated in 1.1.6 but does not halt execution or alter behavior. |
@@ -55,7 +56,7 @@ Each contract is classified as:
 | `BC-VER-01` | CLI / Module (`django-version`) | `django-version` (no options) or importing `version` | Returns/prints static version string constant `"1.1.6 (beta)"` | intended | `tests/unit/test_version.py` | Static constant defined in `djstartlib/version.py`. |
 | `BC-VER-02` | CLI / Module (`django-version`) | `django-version --check-update` with newer version available | Compares version tuples using `sum(var_int)` and prints `New Update Available <tag>` | known-defect | `tests/unit/test_version.py` | Flawed arithmetic comparison logic; see Section 4.1. |
 | `BC-VER-03` | CLI / Module (`django-version`) | `django-version --check-update` with same or older version | Compares version tuples using `sum(var_int)` and prints `You have the latest version` | intended | `tests/unit/test_version.py` | Normal status branch when no newer version detected. |
-| `BC-VER-04` | Function (`check_available`) | Network error (`urllib.error.URLError`) during GitHub API request | Catches `URLError`, calls `warn_stdout`, and immediately terminates process with `sys.exit(1)` | intended | `tests/unit/test_version.py` | Abrupt termination directly inside library function. |
+| `BC-VER-04` | Function (`check_available`) | Network error (`urllib.error.URLError`) during GitHub API request | Catches `URLError` and immediately terminates process with `sys.exit(1)` (silent exit) | intended | `tests/unit/test_version.py` | Abrupt silent termination directly inside library function without warning output. |
 | `BC-VER-05` | CLI (`django-version`) | `django-version --update` | Invokes `pip install --upgrade django-start-automate` via `subprocess.call` with `shell=True` | legacy-reliance / known-defect | `tests/unit/test_version.py` | Package self-update using shell execution; see Section 4.3. |
 | `BC-ENV-01` | Class (`Environment`) | `Environment(app="blog", project="mysite")` instantiation | Tracks `app`, `project`, current working directory, and reads `PYTHONEXEC` / `DJANGOADMIN` from env | intended | `tests/unit/test_environment.py` | Base state container for `ProjectManager` and `AppManager`. |
 | `BC-ENV-02` | Class (`Environment`) | In-memory line operations: `read_file`, `insert_line`, `replace_line`, `write` | Reads file lines into `self.line_list`, mutates line list by index, and writes back to disk | intended | `tests/unit/test_environment.py` | Primitive line manipulation mechanism. |
@@ -75,7 +76,7 @@ Each contract is classified as:
 | `BC-APP-06` | Method (`create_templates`) | `templates/<app>/index.html` does not exist | Creates directory structure and writes default HTML starter page | intended | `tests/unit/test_app_manager.py` | Generates initial template in namespaced folder. |
 | `BC-APP-07` | Method (`create_templates`) | `templates/<app>/index.html` already exists | Prints warning `"Index.html is Already exists."` and preserves existing file | intended | `tests/unit/test_app_manager.py` | Non-destructive behavior protecting user templates. |
 | `BC-HLP-01` | Module (`helper`) | Template functions: `build_view_func()`, `build_views_urls()`, `generate_html()` | Produces `string.Template` instances and HTML strings for views and templates | intended | `tests/unit/test_helper.py` | Reusable string templates. |
-| `BC-HLP-02` | Module (`helper`) | Command functions: `create_env`, `executable_python_command`, `executable_django_command`, `upgrade_pip`, etc. | Executes commands via `subprocess.call` with `shell=True` and `DEVNULL`; sets environment variables; exits on error | legacy-reliance / known-defect | `tests/unit/test_helper.py` | Unsafe shell execution and mutable process-wide state. |
+| `BC-HLP-02` | Module (`helper`) | Command functions: `create_env`, `executable_python_command`, `executable_django_command`, `upgrade_pip`, etc. | Executes commands via `subprocess.call` with `shell=True` and `DEVNULL`; sets environment variables (overwriting `PYTHONEXEC`, preserving `DJANGOADMIN` if preset); exits on error | legacy-reliance / known-defect | `tests/unit/test_helper.py` | Unsafe shell execution, platform-dependent environment path logic (POSIX vs Windows Scripts), and mutable process-wide state. |
 | `BC-ORCH-01` | Class (`DjangoStart`) | Full pipeline execution: `setup_project()` followed by `setup_app(app_url)` | Coordinates virtualenv creation, project scaffolding, pip upgrade, django install, requirements dump, settings/url updates, and app setup | intended | `tests/integration/test_scaffold_orchestration.py` | Mocked-boundary integration test exercising complete generation workflow. |
 
 ---
@@ -169,7 +170,7 @@ def update_view(self):
 The baseline characterization suite provides a robust safety net for the upcoming 2.0 refactoring:
 
 1. **Deterministic Regression Protection**:
-   - 42 tests continuously verify observable behavior across entry points, CLI parsing, environment modeling, project generation, app generation, template generation, and full orchestration.
+   - 44 tests continuously verify observable behavior across entry points, CLI parsing, environment modeling, project generation, app generation, template generation, and full orchestration.
    - All tests run in isolated temporary environments (`tmp_path`) with zero network access and zero mutation of developer filesystems.
 
 2. **Clean Boundary Separation**:
@@ -208,6 +209,8 @@ tests/unit/test_environment.py::test_environment_file_operations
 tests/unit/test_helper.py::test_template_generators
 tests/unit/test_helper.py::test_warn_stdout
 tests/unit/test_helper.py::test_create_env_sets_environment_variables
+tests/unit/test_helper.py::test_create_env_windows_default_paths
+tests/unit/test_helper.py::test_create_env_windows_django_admin_setdefault_behavior
 tests/unit/test_helper.py::test_executable_python_command
 tests/unit/test_helper.py::test_executable_python_command_failure_exits
 tests/unit/test_helper.py::test_executable_django_command
@@ -233,30 +236,29 @@ tests/unit/test_version.py::test_cli_version_default
 tests/unit/test_version.py::test_cli_version_check_update
 tests/unit/test_version.py::test_cli_version_update_invokes_pip_with_shell
 
-42 tests collected in 0.07s
+44 tests collected in 0.10s
 ```
 
 ### 6.2 Test Execution Results
 Executing `.venv/bin/pytest`:
 ```text
 ============================= test session starts ==============================
-platform darwin -- Python 3.14.7, pytest-8.3.4, pluggy-1.6.0
+platform darwin -- Python 3.11.16, pytest-8.3.4, pluggy-1.6.0
 rootdir: /Volumes/Dev/Personal/django-start
 configfile: pytest.ini
 testpaths: tests
-plugins: cov-7.1.0
-collected 42 items
+collected 44 items
 
 tests/integration/test_scaffold_orchestration.py .                       [  2%]
-tests/unit/test_app_manager.py ........                                  [ 21%]
-tests/unit/test_bootstrap.py .                                           [ 23%]
-tests/unit/test_cli.py ...                                               [ 30%]
-tests/unit/test_environment.py ..                                        [ 35%]
-tests/unit/test_helper.py .......                                        [ 52%]
-tests/unit/test_project_manager.py ..........                            [ 76%]
+tests/unit/test_app_manager.py ........                                  [ 20%]
+tests/unit/test_bootstrap.py .                                           [ 22%]
+tests/unit/test_cli.py ...                                               [ 29%]
+tests/unit/test_environment.py ..                                        [ 34%]
+tests/unit/test_helper.py .........                                      [ 54%]
+tests/unit/test_project_manager.py ..........                            [ 77%]
 tests/unit/test_version.py ..........                                    [100%]
 
-============================== 42 passed in 0.12s ==============================
+============================== 44 passed in 0.13s ==============================
 ```
 
 ### 6.3 Test Distribution by Functional Area
@@ -268,6 +270,6 @@ tests/unit/test_version.py ..........                                    [100%]
 | `tests/unit/test_environment.py` | Unit | 2 | `BC-ENV-01`, `BC-ENV-02` |
 | `tests/unit/test_project_manager.py` | Unit | 10 | `BC-PRJ-01`, `BC-PRJ-02`, `BC-PRJ-03`, `BC-PRJ-04`, `BC-PRJ-05`, `BC-PRJ-06`, `BC-PRJ-07`, `BC-PRJ-08` |
 | `tests/unit/test_app_manager.py` | Unit | 8 | `BC-APP-01`, `BC-APP-02`, `BC-APP-03`, `BC-APP-04`, `BC-APP-05`, `BC-APP-06`, `BC-APP-07` |
-| `tests/unit/test_helper.py` | Unit | 7 | `BC-HLP-01`, `BC-HLP-02` |
+| `tests/unit/test_helper.py` | Unit | 9 | `BC-HLP-01`, `BC-HLP-02` |
 | `tests/integration/test_scaffold_orchestration.py` | Integration | 1 | `BC-ORCH-01` |
-| **Total** | | **42** | **31 Contracts (100% Covered)** |
+| **Total** | | **44** | **31 Identified Contracts Characterized** |
