@@ -825,3 +825,152 @@ These rules apply while establishing the Django Start 1.1.6 behavioral baseline 
 20. **When uncertain, protect historical evidence.**
     During the 1.1.6 baseline phase, prefer preserving and documenting existing behavior over modifying it.
     Modernization becomes safe only after the behavioral safety net exists.
+
+
+## Repository Quality Gates and Agent Execution Discipline
+
+These rules apply to every agent task, including documentation, tests, infrastructure, refactoring, maintenance, and feature development.
+
+1. **Discover repository quality gates before editing files.**
+
+   Before implementation begins, inspect all relevant repository-controlled validation configuration, including:
+
+   * `AGENTS.md`
+   * `.pre-commit-config.yaml`
+   * CI workflows
+   * `pyproject.toml`
+   * `setup.cfg`
+   * `tox.ini` / `noxfile.py` when present
+   * test configuration
+   * formatter, linter, type-checker, and build configuration
+
+   Do not assume the project's quality commands from general ecosystem conventions.
+
+2. **Run baseline validation before making changes.**
+
+   Execute the relevant existing quality gates before implementation whenever practical.
+
+   Record pre-existing failures separately from failures introduced by the task.
+
+   A task must never silently take ownership of unrelated historical repository failures.
+
+3. **Repository-controlled tooling is authoritative until explicitly migrated.**
+
+   The tooling actually configured in the repository remains authoritative until a dedicated tooling migration changes it.
+
+   Future-state architecture rules do not silently replace current repository tooling.
+
+   For example, if the repository currently runs Black and Flake8 while the modernization target is Ruff, agents must respect the current checks until the Ruff migration is explicitly implemented.
+
+4. **Every changed file must pass its applicable quality gates.**
+
+   Before committing, run the configured formatter, linter, syntax checks, and relevant tests against files changed by the task.
+
+   Newly introduced code must not add formatter, lint, type-checking, or test failures.
+
+5. **Auto-fix tools do not grant permission to expand task scope.**
+
+   Formatters, linters, pre-commit hooks, and code-modification tools may modify files automatically.
+
+   After every auto-fix operation, inspect the resulting diff.
+
+   If a tool modifies a frozen, protected, or unrelated file, do not automatically commit that modification.
+
+   Revert out-of-scope changes unless the current task explicitly authorizes them.
+
+6. **Frozen legacy code remains frozen even when a global formatter wants to modify it.**
+
+   During a characterization or compatibility-baseline phase, formatter output is not permission to rewrite production code.
+
+   Pre-existing style violations in frozen code must be reported and addressed in a separate cleanup or modernization change.
+
+7. **Run pre-commit deliberately at two scopes.**
+
+   During development, run hooks against task-owned changed files.
+
+   Before final handoff, also run the repository-wide pre-commit validation when available.
+
+   Repository-wide failures must be classified as either:
+
+   * introduced by this task; or
+   * pre-existing/out-of-scope repository debt.
+
+   Failures introduced by the task must be fixed before handoff.
+
+8. **Never claim CI-clean status when a required gate is known to fail.**
+
+   A successful test suite does not mean the repository is fully verified.
+
+   Completion reports must distinguish independently between:
+
+   * tests;
+   * lint;
+   * formatting;
+   * type checking;
+   * build/package validation;
+   * security checks;
+   * generated-project checks;
+   * CI status.
+
+   If one required gate remains failing, report the task as functionally complete but not fully CI-green.
+
+9. **Verification must use the declared environment.**
+
+   If documentation declares a canonical Python, Django, operating-system, or dependency environment, final verification must run in that environment.
+
+   Passing on a newer or different interpreter does not substitute for verification of the declared baseline.
+
+10. **Verification environments must not depend on undeclared tooling.**
+
+    Use a clean virtual environment for authoritative test runs.
+
+    Install only declared runtime and test dependencies unless additional tools are explicitly documented.
+
+    Unexpected globally installed or automatically loaded pytest plugins must not influence authoritative characterization results.
+
+    When appropriate, disable pytest plugin auto-discovery for baseline verification.
+
+11. **Re-run modified hooks until stable.**
+
+    Any pre-commit hook that modifies files requires another validation pass.
+
+    A formatting or lint run is complete only when a subsequent run produces no changes and exits successfully for the applicable scope.
+
+12. **Inspect the final diff before every commit and handoff.**
+
+    Verify that:
+
+    * only intended files changed;
+    * no protected file changed accidentally;
+    * no generated/cache artifact was added;
+    * no debug code remains;
+    * no formatter-created unrelated changes remain;
+    * no secrets or machine-specific paths were introduced.
+
+13. **Separate repository hygiene from behavior changes.**
+
+    Large formatting migrations, lint normalization, import cleanup, formatter replacement, and pre-commit modernization must be isolated from functional refactoring whenever practical.
+
+    Behavior-preserving formatting changes should have their own commit or pull request so characterization tests can prove that observable behavior did not change.
+
+14. **Public re-exports must not be deleted merely to satisfy unused-import rules.**
+
+    `__init__.py` exports and compatibility imports may form part of the public API.
+
+    Resolve lint warnings using explicit exports such as `__all__`, justified per-file configuration, or an intentional API migration.
+
+    Do not delete an import until its compatibility impact has been determined.
+
+15. **Authoritative documentation requires implementation evidence.**
+
+    Statements describing current behavior must be supported by inspected implementation, a reproducing test, or both.
+
+    Do not document inferred behavior as a reproduced fact.
+
+    When evidence is incomplete, classify the statement as an observation, hypothesis, or known limitation instead.
+
+16. **Completion claims must be evidence-based.**
+
+    Words such as `verified`, `complete`, `fully passing`, `deterministic`, and `CI green` may only be used when the corresponding verification was actually executed successfully.
+
+    Final agent reports must include the relevant environment and commands used to establish those claims.
