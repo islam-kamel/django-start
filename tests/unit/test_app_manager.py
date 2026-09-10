@@ -61,6 +61,7 @@ def test_update_view_warns_when_comment_missing(isolated_workdir, capsys):
 
     captured = capsys.readouterr()
     assert '"home" View is Exists!' in captured.out
+    assert views_file.read_text(encoding="utf-8") == "from django.shortcuts import render\n"
 
 
 def test_create_urls(isolated_workdir):
