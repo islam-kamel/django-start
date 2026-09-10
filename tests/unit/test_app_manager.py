@@ -11,22 +11,32 @@ def test_app_paths(isolated_workdir):
     assert am.workdir == os.path.join(str(isolated_workdir), "blog")
     assert am.views == os.path.join(str(isolated_workdir), "blog/views.py")
     assert am.urls == os.path.join(str(isolated_workdir), "blog/urls.py")
-    assert am.templates == os.path.join(str(isolated_workdir), "blog/templates")
+    assert am.templates == os.path.join(
+        str(isolated_workdir), "blog/templates"
+    )
 
 
 def test_create_app_when_new(isolated_workdir):
-    """Characterize BC-APP-01: create_app executes manage.py startapp when app dir does not exist."""
+    """Characterize BC-APP-01: create_app executes manage.py startapp
+    when app dir does not exist.
+    """
     am = AppManager(project="mysite", app="blog")
-    with patch("djstartlib.models.app_manager.executable_python_command") as mock_cmd:
+    with patch(
+        "djstartlib.models.app_manager.executable_python_command"
+    ) as mock_cmd:
         am.create_app()
         mock_cmd.assert_called_once_with("manage.py startapp blog")
 
 
 def test_create_app_when_exists(isolated_workdir, capsys):
-    """Characterize BC-APP-02: create_app warns and skips command when app directory exists."""
+    """Characterize BC-APP-02: create_app warns and skips command when
+    app directory exists.
+    """
     (isolated_workdir / "blog").mkdir()
     am = AppManager(project="mysite", app="blog")
-    with patch("djstartlib.models.app_manager.executable_python_command") as mock_cmd:
+    with patch(
+        "djstartlib.models.app_manager.executable_python_command"
+    ) as mock_cmd:
         am.create_app()
         mock_cmd.assert_not_called()
         captured = capsys.readouterr()
@@ -34,11 +44,16 @@ def test_create_app_when_exists(isolated_workdir, capsys):
 
 
 def test_update_view_replaces_default_comment(isolated_workdir):
-    """Characterize BC-APP-03: update_view replaces default comment with home view function."""
+    """Characterize BC-APP-03: update_view replaces default comment with
+    home view function.
+    """
     app_dir = isolated_workdir / "blog"
     app_dir.mkdir()
     views_file = app_dir / "views.py"
-    views_file.write_text("from django.shortcuts import render\n\n# Create your views here.\n", encoding="utf-8")
+    views_file.write_text(
+        "from django.shortcuts import render\n\n# Create your views here.\n",
+        encoding="utf-8",
+    )
 
     am = AppManager(project="mysite", app="blog")
     am.update_view()
@@ -50,22 +65,31 @@ def test_update_view_replaces_default_comment(isolated_workdir):
 
 
 def test_update_view_warns_when_comment_missing(isolated_workdir, capsys):
-    """Characterize BC-APP-04: update_view warns when default comment is missing."""
+    """Characterize BC-APP-04: update_view warns when default comment
+    is missing.
+    """
     app_dir = isolated_workdir / "blog"
     app_dir.mkdir()
     views_file = app_dir / "views.py"
-    views_file.write_text("from django.shortcuts import render\n", encoding="utf-8")
+    views_file.write_text(
+        "from django.shortcuts import render\n", encoding="utf-8"
+    )
 
     am = AppManager(project="mysite", app="blog")
     am.update_view()
 
     captured = capsys.readouterr()
     assert '"home" View is Exists!' in captured.out
-    assert views_file.read_text(encoding="utf-8") == "from django.shortcuts import render\n"
+    assert (
+        views_file.read_text(encoding="utf-8")
+        == "from django.shortcuts import render\n"
+    )
 
 
 def test_create_urls(isolated_workdir):
-    """Characterize BC-APP-05: create_urls creates urls.py with home view route."""
+    """Characterize BC-APP-05: create_urls creates urls.py with home view
+    route.
+    """
     app_dir = isolated_workdir / "blog"
     app_dir.mkdir()
 
@@ -81,7 +105,9 @@ def test_create_urls(isolated_workdir):
 
 
 def test_create_templates(isolated_workdir):
-    """Characterize BC-APP-06: create_templates generates index.html in templates/<app>/ directory."""
+    """Characterize BC-APP-06: create_templates generates index.html in
+    templates/<app>/ directory.
+    """
     app_dir = isolated_workdir / "blog"
     app_dir.mkdir()
 
@@ -96,7 +122,9 @@ def test_create_templates(isolated_workdir):
 
 
 def test_create_templates_warns_when_already_exists(isolated_workdir, capsys):
-    """Characterize BC-APP-07: create_templates warns and preserves existing index.html."""
+    """Characterize BC-APP-07: create_templates warns and preserves existing
+    index.html.
+    """
     app_dir = isolated_workdir / "blog"
     app_dir.mkdir()
     templates_dir = app_dir / "templates" / "blog"

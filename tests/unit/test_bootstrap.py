@@ -1,5 +1,7 @@
 def test_package_entry_points_importable():
-    """Verify djstartlib entry points are importable and callables resolve without crashing."""
+    """Verify djstartlib entry points are importable and callables resolve
+    without crashing.
+    """
     import djstartlib
     import djstartlib.main
     import djstartlib.version

@@ -21,8 +21,12 @@ from djstartlib.models.utils.helper import (
 
 
 def test_template_generators():
-    """Characterize BC-HLP-01: template generator string substitution and HTML output."""
-    view_template = build_view_func().substitute(app_name="blog", html_file="index.html")
+    """Characterize BC-HLP-01: template generator string substitution and
+    HTML output.
+    """
+    view_template = build_view_func().substitute(
+        app_name="blog", html_file="index.html"
+    )
     assert "def home(request):" in view_template
     assert "return render(request, 'blog" in view_template
 
@@ -35,7 +39,9 @@ def test_template_generators():
 
 
 def test_generate_html_exact_match():
-    """Verify generate_html produces byte-for-byte identical output to 1.1.6 fixture."""
+    """Verify generate_html produces byte-for-byte identical output to
+    1.1.6 fixture.
+    """
     fixture_path = (
         pathlib.Path(__file__).resolve().parent.parent
         / "fixtures"
@@ -46,14 +52,18 @@ def test_generate_html_exact_match():
 
 
 def test_warn_stdout(capsys):
-    """Characterize warn_stdout printing formatted warning message to stdout."""
+    """Characterize warn_stdout printing formatted warning message to
+    stdout.
+    """
     warn_stdout("test warning")
     captured = capsys.readouterr()
     assert "WARNING: test warning" in captured.out
 
 
 def test_create_env_sets_environment_variables(tmp_path, monkeypatch):
-    """Characterize BC-HLP-02: create_env creates venv and sets PYTHONEXEC and DJANGOADMIN."""
+    """Characterize BC-HLP-02: create_env creates venv and sets
+    PYTHONEXEC and DJANGOADMIN.
+    """
     # Hermetically clear inherited environment variables before testing
     monkeypatch.delenv("PYTHONEXEC", raising=False)
     monkeypatch.delenv("DJANGOADMIN", raising=False)
@@ -65,12 +75,18 @@ def test_create_env_sets_environment_variables(tmp_path, monkeypatch):
             call_arg = mock_call.call_args[0][0]
             assert "-m venv" in call_arg
             assert str(tmp_path / "myenv") in call_arg
-            assert os.environ["PYTHONEXEC"] == str(tmp_path / "myenv/bin/python3")
-            assert os.environ["DJANGOADMIN"] == str(tmp_path / "myenv/bin/django-admin")
+            assert os.environ["PYTHONEXEC"] == str(
+                tmp_path / "myenv/bin/python3"
+            )
+            assert os.environ["DJANGOADMIN"] == str(
+                tmp_path / "myenv/bin/django-admin"
+            )
 
 
 def test_create_env_windows_default_paths(tmp_path, monkeypatch):
-    """Characterize BC-HLP-02: create_env on Windows sets Scripts paths in environment."""
+    """Characterize BC-HLP-02: create_env on Windows sets Scripts paths
+    in environment.
+    """
     monkeypatch.delenv("PYTHONEXEC", raising=False)
     monkeypatch.delenv("DJANGOADMIN", raising=False)
 
@@ -82,12 +98,20 @@ def test_create_env_windows_default_paths(tmp_path, monkeypatch):
             call_arg = mock_call.call_args[0][0]
             assert "-m venv" in call_arg
             assert env_path in call_arg
-            assert os.environ["PYTHONEXEC"] == os.path.join(env_path, "Scripts/python.exe")
-            assert os.environ["DJANGOADMIN"] == os.path.join(env_path, "Scripts/django-admin.exe")
+            assert os.environ["PYTHONEXEC"] == os.path.join(
+                env_path, "Scripts/python.exe"
+            )
+            assert os.environ["DJANGOADMIN"] == os.path.join(
+                env_path, "Scripts/django-admin.exe"
+            )
 
 
-def test_create_env_windows_django_admin_setdefault_behavior(tmp_path, monkeypatch):
-    """Characterize BC-HLP-02: create_env overwrites PYTHONEXEC but preserves pre-set DJANGOADMIN via setdefault."""
+def test_create_env_windows_django_admin_setdefault_behavior(
+    tmp_path, monkeypatch
+):
+    """Characterize BC-HLP-02: create_env overwrites PYTHONEXEC but
+    preserves pre-set DJANGOADMIN via setdefault.
+    """
     monkeypatch.setenv("PYTHONEXEC", "/preexisting/python")
     monkeypatch.setenv("DJANGOADMIN", "/custom/django-admin")
 
@@ -96,14 +120,19 @@ def test_create_env_windows_django_admin_setdefault_behavior(tmp_path, monkeypat
             env_path = str(tmp_path / "winenv")
             create_env(env_path)
             # PYTHONEXEC is unconditionally overwritten
-            assert os.environ["PYTHONEXEC"] == os.path.join(env_path, "Scripts/python.exe")
+            assert os.environ["PYTHONEXEC"] == os.path.join(
+                env_path, "Scripts/python.exe"
+            )
             assert os.environ["PYTHONEXEC"] != "/preexisting/python"
-            # DJANGOADMIN uses setdefault, so the pre-existing value is preserved
+            # DJANGOADMIN uses setdefault, so the pre-existing value
+            # is preserved
             assert os.environ["DJANGOADMIN"] == "/custom/django-admin"
 
 
 def test_executable_python_command(monkeypatch):
-    """Characterize BC-HLP-02: executable_python_command invokes subprocess.call with shell=True."""
+    """Characterize BC-HLP-02: executable_python_command invokes
+    subprocess.call with shell=True.
+    """
     monkeypatch.setenv("PYTHONEXEC", "/usr/bin/python3")
     with patch("subprocess.call", return_value=0) as mock_call:
         executable_python_command("-m pip --version")
@@ -116,7 +145,9 @@ def test_executable_python_command(monkeypatch):
 
 
 def test_executable_python_command_failure_exits(monkeypatch):
-    """Characterize BC-HLP-02: executable_python_command exits with code 1 on non-zero process exit."""
+    """Characterize BC-HLP-02: executable_python_command exits with code 1
+    on non-zero process exit.
+    """
     monkeypatch.setenv("PYTHONEXEC", "/usr/bin/python3")
     with patch("subprocess.call", return_value=1):
         with patch("platform.system", return_value="Darwin"):
@@ -126,7 +157,9 @@ def test_executable_python_command_failure_exits(monkeypatch):
 
 
 def test_executable_django_command(monkeypatch):
-    """Characterize BC-HLP-02: executable_django_command invokes subprocess.call with shell=True."""
+    """Characterize BC-HLP-02: executable_django_command invokes
+    subprocess.call with shell=True.
+    """
     monkeypatch.setenv("DJANGOADMIN", "/usr/bin/django-admin")
     with patch("subprocess.call", return_value=0) as mock_call:
         executable_django_command("version")
@@ -139,8 +172,12 @@ def test_executable_django_command(monkeypatch):
 
 
 def test_helper_shortcut_commands():
-    """Characterize shortcut functions delegating to executable_python_command."""
-    with patch("djstartlib.models.utils.helper.executable_python_command") as mock_exec:
+    """Characterize shortcut functions delegating to
+    executable_python_command.
+    """
+    with patch(
+        "djstartlib.models.utils.helper.executable_python_command"
+    ) as mock_exec:
         upgrade_pip()
         mock_exec.assert_called_with("-m pip install --upgrade pip")
 
