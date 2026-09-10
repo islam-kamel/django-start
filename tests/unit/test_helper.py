@@ -1,4 +1,6 @@
+import json
 import os
+import pathlib
 import subprocess
 from unittest.mock import patch
 
@@ -30,6 +32,17 @@ def test_template_generators():
     html = generate_html()
     assert "<title>Django Start</title>" in html
     assert "Hello, Django-Start" in html
+
+
+def test_generate_html_exact_match():
+    """Verify generate_html produces byte-for-byte identical output to 1.1.6 fixture."""
+    fixture_path = (
+        pathlib.Path(__file__).resolve().parent.parent
+        / "fixtures"
+        / "generated-index-1.1.6.json"
+    )
+    data = json.loads(fixture_path.read_text(encoding="utf-8"))
+    assert generate_html() == data["html"]
 
 
 def test_warn_stdout(capsys):
