@@ -1,4 +1,3 @@
-import pytest
 from djstartlib.models.utils.environment import Environment
 
 
