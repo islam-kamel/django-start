@@ -11,7 +11,7 @@ def warn_stdout(message):
 
 
 def create_env(env_name_path):
-    click.secho("\U0001F984 Create Environment...", fg="blue")
+    click.secho("\U0001f984 Create Environment...", fg="blue")
     subprocess.call(
         f"{sys.executable} -m venv {env_name_path}",
         stdout=subprocess.DEVNULL,
@@ -88,23 +88,19 @@ def build_view_func():
     html_file
     :return: str
     """
-    s = Template(
-        f"""
+    s = Template(f"""
 def home(request):
-    return render(request, '$app_name{os.sep}$html_file')"""
-    )
+    return render(request, '$app_name{os.sep}$html_file')""")
     return s
 
 
 def build_views_urls():
-    s = Template(
-        """from django.urls import path
+    s = Template("""from django.urls import path
 from . import views
 
 urlpatterns = [
     path('', views.$view_name)
-]"""
-    )
+]""")
     return s
 
 
