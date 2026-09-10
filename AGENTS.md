@@ -878,11 +878,17 @@ These rules apply to every agent task, including documentation, tests, infrastru
 
    Revert out-of-scope changes unless the current task explicitly authorizes them.
 
-6. **Frozen legacy code remains frozen even when a global formatter wants to modify it.**
+6. **Code-style policy across repository lifecycle phases.**
 
-   During a characterization or compatibility-baseline phase, formatter output is not permission to rewrite production code.
+   The repository's configured style rules are mandatory for both legacy and new code. Replace any interpretation that allows known legacy style failures to remain indefinitely. The policy distinguishes between three distinct phases:
 
-   Pre-existing style violations in frozen code must be reported and addressed in a separate cleanup or modernization change.
+   * **Characterization phase**: Production behavior must not be changed merely to satisfy formatting. Production code remains frozen while establishing the behavioral baseline.
+   * **Dedicated style-normalization phase**: Once behavioral characterization exists, repository-wide behavior-preserving formatting may be performed as an isolated task under the protection of characterization tests.
+   * **Normal development after normalization**: No task may introduce or leave code-style violations. `pre-commit run --all-files` must remain green.
+
+   **Invariants:**
+   * Once the repository reaches a fully green pre-commit baseline, no subsequent task may reintroduce a pre-commit failure.
+   * Existing formatter/linter rules may only be changed through a dedicated tooling-policy decision, never as a shortcut to make a failing change pass.
 
 7. **Run pre-commit deliberately at two scopes.**
 
