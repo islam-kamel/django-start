@@ -56,6 +56,39 @@ def test_create_env_sets_environment_variables(tmp_path, monkeypatch):
             assert os.environ["DJANGOADMIN"] == str(tmp_path / "myenv/bin/django-admin")
 
 
+def test_create_env_windows_default_paths(tmp_path, monkeypatch):
+    """Characterize BC-HLP-02: create_env on Windows sets Scripts paths in environment."""
+    monkeypatch.delenv("PYTHONEXEC", raising=False)
+    monkeypatch.delenv("DJANGOADMIN", raising=False)
+
+    with patch("subprocess.call", return_value=0) as mock_call:
+        with patch("platform.system", return_value="Windows"):
+            env_path = str(tmp_path / "winenv")
+            create_env(env_path)
+            mock_call.assert_called_once()
+            call_arg = mock_call.call_args[0][0]
+            assert "-m venv" in call_arg
+            assert env_path in call_arg
+            assert os.environ["PYTHONEXEC"] == os.path.join(env_path, "Scripts/python.exe")
+            assert os.environ["DJANGOADMIN"] == os.path.join(env_path, "Scripts/django-admin.exe")
+
+
+def test_create_env_windows_django_admin_setdefault_behavior(tmp_path, monkeypatch):
+    """Characterize BC-HLP-02: create_env overwrites PYTHONEXEC but preserves pre-set DJANGOADMIN via setdefault."""
+    monkeypatch.setenv("PYTHONEXEC", "/preexisting/python")
+    monkeypatch.setenv("DJANGOADMIN", "/custom/django-admin")
+
+    with patch("subprocess.call", return_value=0):
+        with patch("platform.system", return_value="Windows"):
+            env_path = str(tmp_path / "winenv")
+            create_env(env_path)
+            # PYTHONEXEC is unconditionally overwritten
+            assert os.environ["PYTHONEXEC"] == os.path.join(env_path, "Scripts/python.exe")
+            assert os.environ["PYTHONEXEC"] != "/preexisting/python"
+            # DJANGOADMIN uses setdefault, so the pre-existing value is preserved
+            assert os.environ["DJANGOADMIN"] == "/custom/django-admin"
+
+
 def test_executable_python_command(monkeypatch):
     """Characterize BC-HLP-02: executable_python_command invokes subprocess.call with shell=True."""
     monkeypatch.setenv("PYTHONEXEC", "/usr/bin/python3")
