@@ -116,9 +116,15 @@ In `djstartlib/models/utils/helper.py`:
 ```python
 def executable_python_command(command: str):
     ...
-    if subprocess.call(f"{os.environ['PYTHONEXEC']} {command}",
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.STDOUT, shell=True) == 1:
+    if (
+        subprocess.call(
+            f"{os.environ['PYTHONEXEC']} {command}",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            shell=True,
+        )
+        == 1
+    ):
         sys.exit(1)
 ```
 - `shell=True` is used for all command executions (`create_env`, `upgrade_pip`, `install_dep`, `requirements_extract`, `executable_python_command`, `executable_django_command`).
@@ -147,8 +153,10 @@ In `djstartlib/models/app_manager.py`:
 def update_view(self):
     try:
         self.replace_line(
-            self.index('# Create your views here.\n'),
-            build_view_func().substitute(app_name=self.app, html_file="index.html")
+            self.index("# Create your views here.\n"),
+            build_view_func().substitute(
+                app_name=self.app, html_file="index.html"
+            ),
         )
         self.write(self.views)
     except ValueError:

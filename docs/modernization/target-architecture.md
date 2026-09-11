@@ -335,9 +335,13 @@ class RecipeMetadata:
     python_requires: str  # Formal Python version specifier (e.g. ">=3.12")
     django_requires: str  # Formal Django version specifier (e.g. ">=5.2")
     supported_tracks: Sequence[str]  # e.g. ("latest", "lts")
-    dependencies: Sequence[str]  # Formal package specifiers (e.g. ["djangorestframework>=3.15,<4"])
+    dependencies: Sequence[
+        str
+    ]  # Formal package specifiers (e.g. ["djangorestframework>=3.15,<4"])
     template_dir: str  # Relative POSIX path to template files
-    post_generate_hooks: Sequence[str] = ()  # Safe internal hooks executed post-scaffolding
+    post_generate_hooks: Sequence[
+        str
+    ] = ()  # Safe internal hooks executed post-scaffolding
 ```
 
 ---

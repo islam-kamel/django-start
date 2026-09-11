@@ -112,8 +112,8 @@ The implementation roadmap intentionally places **Phase 1: Packaging Foundation 
 
 1. **Canonical Layout Stability**:
    Linters and type checkers require explicit path targets (`src = ["src", "tests"]`, module roots, import resolution boundaries). If tooling were configured in Phase 1 against the legacy flat `djstartlib/` layout and `setup.cfg`, the entire configuration would immediately suffer churn when files relocate to `src/django_start/` in Phase 2. Establishing the `src/` layout first means tooling is configured once against the permanent directory tree.
-2. **Eliminating Global State and Import Ambiguity**:
-   The 1.1.6 codebase used runtime `sys.path.append(...)` in `djstartlib/models/__init__.py` to enable bare imports (`from models import ...`). Adopting the `src/` layout with `src/django_start/` and the `src/djstartlib/` compatibility redirect establishes clean module discovery. Ruff and Mypy can then analyze idiomatic, fully qualified Python imports without needing synthetic path workarounds.
+2. **Preparing for Clean Import Ambiguity:
+The 1.1.6 codebase used runtime `sys.path.append(...)` in `djstartlib/models/__init__.py`. Relocating the legacy implementation to `src/djstartlib/` and establishing `src/django_start/` provides a modern namespace foundation. The legacy code maintains its original behavior (including `sys.path.append`), while modern tools can correctly configure typing boundaries between the new namespace and the legacy relocated implementation.
 3. **Single Packaging Authority (PEP 621)**:
    Modern tooling configuration lives in `pyproject.toml` under `[tool.ruff]` and `[tool.mypy]`. Migrating packaging metadata from legacy `setup.py` and `setup.cfg` into `pyproject.toml` in Phase 1 creates the unified configuration host. Phase 2 then cleanly appends tooling tables to `pyproject.toml` without cross-file synchronization debt.
 4. **Strict Phase Dependency Sequence**:
@@ -134,7 +134,7 @@ The implementation roadmap intentionally places **Phase 1: Packaging Foundation 
 - **Prerequisites**: Phase 0 baseline complete and green.
 - **Dependencies**: Prerequisite for Phase 2; establishes canonical paths and eliminates `sys.path` pollution.
 - **Contracts Preserved**: All 31 contracts preserved; `BC-BOOT-01` supported via `src/djstartlib/` shim.
-- **Tests Required**: Wheel build succeeds via `python -m build`; entry points execute; 45/45 characterization tests pass under Python 3.11 isolation and Python 3.12+.
+- **Tests Required**: Wheel build succeeds via `python -m build`; entry points execute; historical characterization tests pass under Python 3.11 isolation, and current 2.x tests pass on Python 3.12+.
 - **Rollback Boundary**: Restore `setup.cfg`, `setup.py`, and flat directory layout.
 - **Completion Criteria**: `python -m build` generates clean wheel and sdist containing `django_start` and `djstartlib` redirect; zero `sys.path.append` in package source; legacy import paths remain functional with `DeprecationWarning`.
 

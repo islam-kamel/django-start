@@ -61,13 +61,15 @@ Commands MUST be passed as argument sequences.
 Example:
 
 ```python
-runner.run([
-    python_executable,
-    "-m",
-    "pip",
-    "install",
-    f"Django=={django_version}",
-])
+runner.run(
+    [
+        python_executable,
+        "-m",
+        "pip",
+        "install",
+        f"Django=={django_version}",
+    ]
+)
 ```
 
 Never:
