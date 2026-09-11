@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import os
 import sys
 from models.app_manager import AppManager  # noqa: F401

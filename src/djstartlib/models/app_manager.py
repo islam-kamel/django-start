@@ -1,7 +1,6 @@
 import os
 
 import click
-
 from models.utils import Environment
 from models.utils.helper import (
     build_view_func,
@@ -53,7 +52,7 @@ class AppManager(Environment):
             warn_stdout(f'"{self.app_name}" already exist!')
 
     def update_view(self) -> None:
-        click.secho(f"\U0001F304 Create '{self.app_name}' Views...", fg="blue")
+        click.secho(f"\U0001f304 Create '{self.app_name}' Views...", fg="blue")
 
         self.read_file(self.views)
         if "# Create your views here.\n" in self.line_list:
@@ -69,14 +68,14 @@ class AppManager(Environment):
             warn_stdout('"home" View is Exists!')
 
     def create_urls(self) -> None:
-        click.secho(f"\U0001F517 Create {self.app_name} URLs...", fg="blue")
+        click.secho(f"\U0001f517 Create {self.app_name} URLs...", fg="blue")
 
         block_of_code = build_views_urls().substitute(view_name="home")
         self.write(self.urls, value=block_of_code)
 
     def create_templates(self) -> None:
         click.secho(
-            f"\U0001F389 Generate '{self.app_name}' Index Page...", fg="blue"
+            f"\U0001f389 Generate '{self.app_name}' Index Page...", fg="blue"
         )
 
         index_path = f"{self.templates}{os.sep}{self.app_name}"

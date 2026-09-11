@@ -1,7 +1,6 @@
 import os
 
 import click
-
 from models.utils import Environment
 from models.utils.helper import (
     executable_django_command,
@@ -33,7 +32,7 @@ class ProjectManager(Environment):
     def update_settings(self) -> None:
         self.read_file(self.settings_path)
         if f"\t'{self.get_app_name()}',\n" not in self.line_list:
-            click.secho("\U0001F527 Update Project Settings...", fg="blue")
+            click.secho("\U0001f527 Update Project Settings...", fg="blue")
             self.insert_line("]\n", f"\t'{self.get_app_name()}',\n")
             self.write(self.settings_path)
         else:
@@ -61,17 +60,17 @@ class ProjectManager(Environment):
 
     @staticmethod
     def upgrade_pip() -> None:
-        click.secho("\U0001F4E6 Upgrade Pip...", fg="blue")
+        click.secho("\U0001f4e6 Upgrade Pip...", fg="blue")
         upgrade_pip()
 
     @staticmethod
     def install_dep() -> None:
-        click.secho("\U000023F3 Install Dependencies...", fg="blue")
+        click.secho("\U000023f3 Install Dependencies...", fg="blue")
         install_dep()
 
     @staticmethod
     def requirements_extract() -> None:
-        click.secho("\U0001F4C3 Generate Requirements.txt...", fg="blue")
+        click.secho("\U0001f4c3 Generate Requirements.txt...", fg="blue")
         requirements_extract()
 
     def create_project(self) -> None:

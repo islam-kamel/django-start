@@ -1,10 +1,11 @@
-import sys
+import importlib.metadata
+import json
 import subprocess
+import sys
 import urllib.error
 from urllib import request
-import json
+
 import click
-import importlib.metadata
 from packaging.version import Version
 
 try:

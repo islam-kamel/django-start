@@ -1,6 +1,7 @@
 """
 Legacy compatibility package / relocated legacy implementation.
 """
+
 import os
 import sys
 

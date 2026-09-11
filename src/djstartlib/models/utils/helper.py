@@ -1,9 +1,10 @@
 import os
-import click
-import subprocess
 import platform
+import subprocess
 import sys
 from string import Template
+
+import click
 
 
 def warn_stdout(message):
@@ -11,7 +12,7 @@ def warn_stdout(message):
 
 
 def create_env(env_name_path):
-    click.secho("\U0001F984 Create Environment...", fg="blue")
+    click.secho("\U0001f984 Create Environment...", fg="blue")
     subprocess.call(
         f"{sys.executable} -m venv {env_name_path}",
         stdout=subprocess.DEVNULL,

@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 import pytest
 
 from djstartlib.models.djstart_interface import DjangoStart
@@ -29,22 +30,22 @@ def test_full_scaffold_lifecycle(isolated_workdir):
             "# Create your views here.\n", encoding="utf-8"
         )
 
-    with patch(
-        "djstartlib.models.djstart_interface.create_env"
-    ) as mock_create_env, patch(
-        "models.project_manager.executable_django_command",
-        side_effect=simulate_startproject,
-    ) as mock_dj_cmd, patch(
-        "models.project_manager.upgrade_pip"
-    ), patch(
-        "models.project_manager.install_dep"
-    ), patch(
-        "models.project_manager.requirements_extract"
-    ), patch(
-        "models.app_manager.executable_python_command",
-        side_effect=simulate_startapp,
-    ) as mock_py_cmd:
-
+    with (
+        patch(
+            "djstartlib.models.djstart_interface.create_env"
+        ) as mock_create_env,
+        patch(
+            "models.project_manager.executable_django_command",
+            side_effect=simulate_startproject,
+        ) as mock_dj_cmd,
+        patch("models.project_manager.upgrade_pip"),
+        patch("models.project_manager.install_dep"),
+        patch("models.project_manager.requirements_extract"),
+        patch(
+            "models.app_manager.executable_python_command",
+            side_effect=simulate_startapp,
+        ) as mock_py_cmd,
+    ):
         app = DjangoStart(str(env_dir), project="demo_proj", app="demo_app")
         mock_create_env.assert_called_once_with(str(env_dir))
 

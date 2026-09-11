@@ -47,7 +47,11 @@ Mechanically capture the exact return value of `generate_html()` from the frozen
 ```python
 def test_generate_html_exact_match():
     """Verify generate_html produces byte-for-byte identical output to 1.1.6 fixture."""
-    fixture_path = pathlib.Path(__file__).resolve().parent.parent / "fixtures" / "generated-index-1.1.6.json"
+    fixture_path = (
+        pathlib.Path(__file__).resolve().parent.parent
+        / "fixtures"
+        / "generated-index-1.1.6.json"
+    )
     data = json.loads(fixture_path.read_text(encoding="utf-8"))
     assert generate_html() == data["html"]
 ```

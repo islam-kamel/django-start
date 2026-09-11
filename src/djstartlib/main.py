@@ -2,7 +2,6 @@
 import pathlib
 
 import click
-
 from models import DjangoStart
 
 
