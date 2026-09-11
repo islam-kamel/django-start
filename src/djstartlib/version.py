@@ -4,8 +4,14 @@ import urllib.error
 from urllib import request
 import json
 import click
+import importlib.metadata
 
-version = "1.1.6 (beta)"
+try:
+    _pkg_version = importlib.metadata.version("django-start-automate")
+except importlib.metadata.PackageNotFoundError:
+    _pkg_version = "1.1.6"
+
+version = f"{_pkg_version} (beta)"
 
 
 def latest_version():
@@ -20,7 +26,8 @@ def latest_version():
 
 
 def current_version():
-    return [1, 1, 6]
+    parts = _pkg_version.split(".")
+    return [int(num) for num in parts[:3]]
 
 
 def check_available():

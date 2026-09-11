@@ -18,9 +18,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: setup.cfg
+          cache-dependency-path: pyproject.toml
 
       - name: Install build tools
         run: |
@@ -40,6 +40,7 @@ jobs:
           test-env-wheel/bin/django-start --help
           test-env-wheel/bin/django-version --help
           test-env-wheel/bin/python -c "import djstartlib"
+          test-env-wheel/bin/python -c "import django_start"
           WHEEL_VER=$(test-env-wheel/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
           echo "Installed wheel version: $WHEEL_VER"
           echo "WHEEL_VER=$WHEEL_VER" >> $GITHUB_ENV
@@ -49,7 +50,9 @@ jobs:
           python -m venv test-env-sdist
           test-env-sdist/bin/pip install dist/*.tar.gz
           test-env-sdist/bin/django-start --help
+          test-env-sdist/bin/django-version --help
           test-env-sdist/bin/python -c "import djstartlib"
+          test-env-sdist/bin/python -c "import django_start"
           SDIST_VER=$(test-env-sdist/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
           echo "Installed sdist version: $SDIST_VER"
           echo "SDIST_VER=$SDIST_VER" >> $GITHUB_ENV
