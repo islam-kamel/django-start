@@ -997,3 +997,62 @@ These rules apply to every agent task, including documentation, tests, infrastru
     An agent must not claim a configuration is `verified` merely because its serialization format parses successfully.
 
     When native platform validation is unavailable locally, inspect the official schema/documentation and report the remaining validation boundary explicitly.
+
+## Release Engineering Rules
+
+### Explicit Release Only
+A push to `main` cannot publish a distribution.
+Production publication requires an explicit release event.
+
+### Mandatory Human Approval
+A release event is not sufficient to publish.
+The production publish job MUST reference the protected `pypi` environment and wait for its required-reviewer approval.
+No future task may remove the manual production approval gate without an explicit architecture/security decision.
+
+### Trusted Publishing Only
+Use PyPI Trusted Publishing/OIDC.
+Long-lived PyPI publication tokens are prohibited while Trusted Publishing is available.
+
+### Least Privilege
+Only the publish job receives:
+```text
+id-token: write
+```
+
+### Build Once
+The artifact uploaded to PyPI is the exact artifact that previously passed release validation.
+Never rebuild under publication privileges.
+
+### Version Agreement
+Release tag and distribution metadata must agree.
+Version mismatch blocks publication.
+
+### Artifact Verification
+Passing source-tree tests alone does not validate a release.
+Wheel and sdist must be built and checked.
+Clean installed-artifact tests are required.
+
+### Manual Approval Is a Security Boundary
+GitHub `pypi` environment protection is part of the project's release security model.
+Do not bypass it to accelerate a release.
+
+### Duplicate Safety
+Production duplicate uploads fail.
+Never hide duplicate-release problems with `skip-existing`.
+
+### Evidence
+Release reports record:
+```text
+source commit SHA
+release tag/version
+artifact names
+SHA-256 hashes
+package validation
+installed-artifact validation
+approval/deployment status
+workflow run
+PyPI outcome
+```
+
+### No False Verification Claims
+A release workflow that has never successfully published a unique version through Trusted Publishing is not described as fully production-verified.

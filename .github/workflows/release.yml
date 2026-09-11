@@ -1,0 +1,94 @@
+name: Production Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: setup.cfg
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build twine
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Validate distribution metadata
+        run: python -m twine check dist/*
+
+      - name: Verify Version Consistency
+        id: check_version
+        run: |
+          # Remove optional leading 'v' from tag
+          TAG_VERSION=${GITHUB_REF_NAME#v}
+          # Extract version from setup.cfg
+          PACKAGE_VERSION=$(grep -E "^version\s*=" setup.cfg | awk -F'=' '{print $2}' | tr -d ' ' | tr -d '"' | tr -d "'")
+          echo "Tag version: $TAG_VERSION"
+          echo "Package version: $PACKAGE_VERSION"
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) does not match package version ($PACKAGE_VERSION)"
+            exit 1
+          fi
+
+      - name: Test Wheel Installation
+        run: |
+          python -m venv test-env-wheel
+          test-env-wheel/bin/pip install dist/*.whl
+          test-env-wheel/bin/django-start --help
+          test-env-wheel/bin/django-version --help
+          test-env-wheel/bin/python -c "import djstartlib"
+
+      - name: Test SDist Installation
+        run: |
+          python -m venv test-env-sdist
+          test-env-sdist/bin/pip install dist/*.tar.gz
+          test-env-sdist/bin/django-start --help
+          test-env-sdist/bin/python -c "import djstartlib"
+
+      - name: Calculate Hashes
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build-and-validate
+    runs-on: ubuntu-latest
+    environment: pypi
+    concurrency:
+      group: pypi-production-release
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@67339c736fd9354cd4f8cb0b744f2b82a74b5c70 # v1.12.3
+        with:
+          skip-existing: false
