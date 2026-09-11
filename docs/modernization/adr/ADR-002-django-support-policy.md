@@ -1,4 +1,4 @@
-# ADR-002: Django Support Policy and Deterministic Pinning
+# ADR-002: Django Support Policy and Reproducibility Strategy
 
 ## Status
 Accepted
@@ -20,10 +20,11 @@ In September 2026, the official Django release landscape is:
    - **Feature Track (Default)**: Django 6.1 (tested baseline `6.1.1`).
    - **LTS Track**: Django 5.2 LTS (tested baseline `5.2.17`), transitioning to Django 6.2 LTS upon its release in April 2027.
 2. Unbounded commands like `pip install django` are strictly forbidden.
-3. Treat `lts` as transitional user vocabulary:
-   - The CLI option `--django lts` is preserved for user convenience and migration stability.
-   - Recipe metadata defines explicit release target mappings (`latest`, `lts`, or specific version strings).
-   - Post-2028 (under DEP 20 CalVer), `--django lts` behaves as an alias for the designated stable enterprise track (the active release with the longest remaining security window or designated conservative stability profile).
+3. Make the lifecycle of `--django lts` explicitly transitional:
+   - It is supported during the Django 5.2 / 6.2 LTS transition era.
+   - It will be deprecated once Django's DEP 20 Calendar Versioning model becomes the normal supported model.
+   - It will be retained only for a documented compatibility window.
+   - It will eventually be removed rather than permanently redefining `lts` to mean a different concept. Future framework selection should rely on explicit release/support metadata and neutral selectors such as `latest` or an explicit version.
 4. Re-evaluated Multi-Layered Dependency and Pinning Strategy:
    - **Compatibility Constraint**: Project manifests (e.g. `requirements.txt` or `pyproject.toml`) specify bounded compatibility ranges (e.g. `Django>=6.1.1,<6.2` or `Django>=5.2.17,<5.3`).
    - **Security Patch Absorption**: Bounded upper constraints allow downstream generated projects to automatically absorb upstream security and bugfix patches without forcing an immediate update of Django-Start.

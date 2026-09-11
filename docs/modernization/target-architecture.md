@@ -87,10 +87,10 @@ flowchart TD
 The `VersionPolicy` domain component is the single source of truth for runtime framework rules, version track resolution, and platform compatibility constraints:
 
 1. **Framework Track Resolution**:
-   - Maps symbolic tracks (`latest`, `lts`) to concrete Django release lines and immutable tested patch pins:
-     - `latest` resolves to `Django 6.1.1` (the newest tested stable feature release).
-     - `lts` resolves to `Django 5.2.17` (the active supported LTS release).
-     - Explicit version specifiers (e.g. `6.1`, `5.2`, `6.1.1`, `5.2.17`) are validated against the supported matrix and resolved to exact patch pins.
+   - Maps symbolic tracks (`latest`, `lts`) to concrete Django release lines and corresponding compatibility bounds:
+     - `latest` resolves to the newest tested stable feature line (e.g. `Django 6.1.1`).
+     - `lts` resolves to the active supported LTS release (e.g. `Django 5.2.17`).
+     - Explicit version specifiers (e.g. `6.1`, `5.2`, `6.1.1`, `5.2.17`) are validated against the supported matrix and resolved to bounded constraints and designated lockfile targets.
 2. **DEP 20 & CalVer Transition Governance**:
    - Encapsulates Django DEP 20's transition from the historical 8-month feature cycle to annual CalVer (`YYYY.N`) starting with Django 2028.0 (January 2028).
    - Treats the `lts` track keyword as a **transitional compatibility alias**. Following Django 6.2 LTS (April 2027), all releases receive uniform 3-year support, retiring the designated LTS model. `VersionPolicy` will emit informational deprecation guidance when `lts` is requested for post-6.2 targets.
@@ -98,9 +98,10 @@ The `VersionPolicy` domain component is the single source of truth for runtime f
    - Pre-validates host interpreter compatibility against target Django versions before scaffolding begins:
      - Rejects host Python < 3.12 with typed `UnsupportedVersionError`.
      - Validates that Python 3.12, 3.13, or 3.14 matches the requested Django release.
-4. **Deterministic Pinning Invariants**:
+4. **Reproducibility Strategy**:
    - Rejects unpinned or floating versions (`django>=0`, unbounded `pip install django`) in project generation.
-   - Enforces that generated dependency manifests record exact, tested package revisions.
+   - Enforces that generated dependency manifests declare bounded compatible constraints (e.g. `Django>=6.1.1,<6.2`).
+   - Exact tested pins are enforced at the lockfile layer (pending evaluation).
 
 ### 2.2 Port & Infrastructure Adapter Mapping
 
@@ -131,7 +132,7 @@ flowchart TD
     PLAN --> CREATE_VENV["6. Provision Virtual Environment (Venv Port)"]
 
     CREATE_VENV -->|"Venv Failed"| ROLLBACK["Execute Rollback (Clean Temp)"]
-    CREATE_VENV --> INSTALL_DEPS["7. Install Exact Pinned Django & Recipe Deps"]
+    CREATE_VENV --> INSTALL_DEPS["7. Install Django & Recipe Deps (Bounded/Resolved)"]
 
     INSTALL_DEPS -->|"Install Failed"| ROLLBACK
     INSTALL_DEPS --> SCAFFOLD_BASE["8. Execute django-admin startproject (Runner Port)"]
@@ -367,7 +368,7 @@ django-start
   - `--no-venv`: Flag to skip environment provisioning and use the executing interpreter.
   - `--dry-run`: Preview planned actions and generated file tree without mutating the filesystem.
   - `--force`: Override conflict detection (backs up existing colliding files to `.bak`).
-- **Execution**: Validates inputs via `VersionPolicy`, creates virtual environment (`EnvironmentManager`), installs exact pinned dependencies (`PackageInstaller`), scaffolds base project (`ScaffoldEngine`), renders recipe templates (`FileSystem`), runs `manage.py check` verification (`ProjectVerifier`), reports success.
+- **Execution**: Validates inputs via `VersionPolicy`, creates virtual environment (`EnvironmentManager`), installs resolved dependencies (`PackageInstaller`), scaffolds base project (`ScaffoldEngine`), renders recipe templates (`FileSystem`), runs `manage.py check` verification (`ProjectVerifier`), reports success.
 - **Rollback**: Safely cleans temporary staging resources if any step fails.
 
 #### `django-start add <app_name>`

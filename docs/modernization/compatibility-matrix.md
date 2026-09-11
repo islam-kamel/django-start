@@ -117,7 +117,7 @@ The CI validation pipeline is organized into four tiers, each verifying specific
 ### 5.1 Tier 1: Primary Linux Validation Matrix
 Runs synchronously on all pull requests. All jobs must pass before merge.
 
-| Job ID | OS | Python | Django Track | Exact Pin | Proven Compatibility Property |
+| Job ID | OS | Python | Django Track | Tested Patch | Proven Compatibility Property |
 |---|---|---|---|---|---|
 | `t1-py312-dj61` | Ubuntu 24.04 | 3.12 | Modern Feature (Default) | Django 6.1.1 | Verifies minimum supported Python 3.12 on modern Django feature track; full CLI use case coverage. |
 | `t1-py312-dj52` | Ubuntu 24.04 | 3.12 | LTS (Transitional) | Django 5.2.17 | Verifies stability track under minimum supported Python; ensures backwards-compatible template generation. |

@@ -14,7 +14,7 @@ The design adheres to the engineering rule:
 | Dependency | Category | Current Version | Latest Stable (Sep 2026) | Target in 2.0 | Action | Technical Justification |
 |---|---|---|---|---|---|---|
 | **click** | Runtime | `8.1.3` | `8.5.0` | `click>=8.5,<9` | Retain & Upgrade | Upstream provides robust typing, nested subcommand trees, and clean error handling without extra dependencies. |
-| **django** (generated projects) | Scaffold Target | Unpinned (`pip install django`) | `6.1.1` (Feature), `5.2.17` (LTS) | Recipe-locked exact pins | Replace Policy | Unbounded `pip install django` is removed. Generator injects deterministic tested pins into target projects. |
+| **django** (generated projects) | Scaffold Target | Unpinned (`pip install django`) | `6.1.1` (Feature), `5.2.17` (LTS) | Bounded compatible constraints | Replace Policy | Unbounded `pip install django` is removed. Generated projects declare bounded constraints (e.g., `Django>=6.1.1,<6.2`); online resolution may select newest patches, exact pins belong to the pending lock-format evaluation. |
 | **pytest** | Test | `8.3.4` | `9.1.1` | `pytest>=8.3,<10` | Retain & Upgrade | Standard test runner. Strict marker enforcement and xfail guarantees continue across Python 3.12 - 3.14. |
 | **pytest-cov** | Test | Not installed | `6.0.0` | `pytest-cov>=5.0,<7` | Add in Test Env | Required to monitor coverage retention and verify the >=90% quality floor during refactoring. |
 | **setuptools** | Build | Legacy (`setup.py` / `setup.cfg`) | `84.0.0` | `setuptools>=84.0` | Modernize | Full PEP 621 declarative metadata support; eliminates `setup.py` and `setup.cfg`. |
