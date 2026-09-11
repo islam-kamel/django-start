@@ -17,19 +17,23 @@ from djstartlib.version import (
 
 
 def test_version_string():
-    """Characterize BC-VER-01: version string constant."""
+    """Migration contract BC-VER-01: 2.x version string via distribution
+    metadata.
+    """
     assert version == "2.0.0a1 (beta)"
 
 
 def test_current_version_type():
-    """Characterize current_version returning packaging.version.Version."""
+    """Migration contract BC-VER-02: current_version intentionally replaced
+    by packaging.version.Version.
+    """
     assert isinstance(current_version(), Version)
     assert current_version() == Version("2.0.0a1")
 
 
 def test_latest_version_parsing():
-    """Characterize parsing GitHub tag API response into version string
-    and Version object.
+    """2.x version behavior: parsing GitHub tag API response into version
+    string and Version object.
     """
     payload = [{"name": "1.2.0"}]
     mock_response = io.BytesIO(json.dumps(payload).encode("utf-8"))
@@ -49,7 +53,9 @@ def test_latest_version_parsing():
     ],
 )
 def test_check_available_versions(capsys, latest, expected_newer):
-    """Characterize checking version comparisons with real packaging rules."""
+    """Migration contract BC-VER-03: 2.x standards-based version
+    comparison.
+    """
     with patch(
         "djstartlib.version.latest_version",
         return_value=(latest, Version(latest)),
@@ -65,8 +71,8 @@ def test_check_available_versions(capsys, latest, expected_newer):
 
 
 def test_check_available_url_error():
-    """Characterize BC-VER-04: check_available raises SystemExit(1) on
-    URLError.
+    """Migration contract BC-VER-04: check_available raises SystemExit(1)
+    on URLError.
     """
     with patch(
         "djstartlib.version.latest_version",
@@ -78,7 +84,7 @@ def test_check_available_url_error():
 
 
 def test_cli_version_default():
-    """Characterize BC-VER-01: CLI invocation of django-version prints
+    """Migration contract BC-VER-01: CLI invocation of django-version prints
     version string.
     """
     runner = CliRunner()
@@ -88,8 +94,8 @@ def test_cli_version_default():
 
 
 def test_cli_version_check_update():
-    """Characterize BC-VER-03: CLI invocation with --check-update checks
-    for update.
+    """Migration contract BC-VER-03: CLI invocation with --check-update
+    checks for update.
     """
     runner = CliRunner()
     with patch(
@@ -102,8 +108,8 @@ def test_cli_version_check_update():
 
 
 def test_cli_version_update_invokes_pip_with_shell():
-    """Characterize BC-VER-05: CLI invocation with --update calls
-    subprocess.call with shell=True.
+    """Migration contract BC-VER-05: shell=True self-update still temporarily
+    present in relocated legacy implementation.
     """
     runner = CliRunner()
     with patch("subprocess.call", return_value=0) as mock_subproc:

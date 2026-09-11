@@ -254,11 +254,11 @@ The table below classifies every identified 1.1.6 contract and defines its targe
 | `BC-CLI-03` | `-v` / `--virtualenv` deprecation warning | `legacy-reliance` | Remove in 2.0 | Flag removed. Virtualenv handling configured via explicit `--venv` / `--no-venv` flags. |
 | `BC-CLI-04` | `-u` / `--url-path` custom route prefix | `intended` | Replace Internally | Moved to `--app-url <prefix>` option in `django-start new`. |
 | `BC-CLI-05` | Missing arguments exits with code 2 | `intended` | Preserve | Click standard argument validation retained. |
-| `BC-VER-01` | Static version constant `"1.1.6 (beta)"` | `intended` | Replace Internally | Dynamic version resolution via `importlib.metadata.version("django-start-automate")`. |
-| `BC-VER-02` | `sum(var_int)` version comparison | `known-defect` | Remove in 2.0 | Removed. Version comparison (if used in doctor/update-check) uses `packaging.version.Version`. |
-| `BC-VER-03` | `check-update` latest version branch | `intended` | Replace Internally | Moved to optional non-blocking `django-start doctor` or explicit `django-start update-check`. |
+| `BC-VER-01` | Static version constant `"1.1.6 (beta)"` | `intended` | Replace Internally | Replaced by distribution metadata. |
+| `BC-VER-02` | `sum(var_int)` version comparison | `known-defect` | Remove in 2.0 | Intentionally replaced by `packaging.version.Version`. |
+| `BC-VER-03` | `check-update` legacy check behavior | `intended` | Replace Internally | Legacy check behavior replaced by standards-based comparison. |
 | `BC-VER-04` | Silent `sys.exit(1)` on network error | `known-defect` | Remove in 2.0 | Library functions raise typed `NetworkError`; CLI formats actionable message without silent abort. |
-| `BC-VER-05` | `django-version --update` invokes pip via shell | `known-defect` | Remove in 2.0 | Removed entirely. Package managers own package upgrades. |
+| `BC-VER-05` | `django-version --update` invokes pip via shell | `known-defect` | Remove in 2.0 | Still temporarily present in relocated legacy implementation; scheduled for removal according to ADR-010. |
 | `BC-ENV-01` | `Environment` container & env var lookups | `intended` | Replace Internally | Replaced by immutable dataclass `ProjectConfig` and domain models. |
 | `BC-ENV-02` | In-memory line operations (`insert_line`, `replace_line`) | `intended` | Replace Internally | Replaced by structured template generation and AST-based configuration modifiers. |
 | `BC-PRJ-01` | `urls_path` and `settings_path` derivation | `intended` | Replace Internally | Handled by `ProjectLayout` domain abstraction using `pathlib.Path`. |

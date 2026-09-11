@@ -1,0 +1,33 @@
+name: Legacy Characterization
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  legacy_characterization:
+    name: Historical 1.1.6 Characterization
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout frozen baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 14b31be5ac235e91919731eb6cf5c4086ab95428
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          pip install -e .
+
+      - name: Execute historical characterization suite
+        run: pytest tests/

@@ -41,7 +41,7 @@ keywords = [
 ]
 dependencies = [
     "click",
-    "packaging>=23.0"
+    "packaging>=23.0,<27.0"
 ]
 
 [project.urls]
