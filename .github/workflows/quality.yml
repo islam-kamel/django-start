@@ -1,0 +1,53 @@
+name: Quality
+
+on:
+  pull_request:
+    paths:
+      - 'pyproject.toml'
+      - 'src/**'
+      - 'tests/**'
+      - '.pre-commit-config.yaml'
+      - '.github/workflows/quality.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'pyproject.toml'
+      - 'src/**'
+      - 'tests/**'
+      - '.pre-commit-config.yaml'
+      - '.github/workflows/quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,test]"
+
+      - name: Run Ruff Lint
+        run: ruff check .
+
+      - name: Run Ruff Format
+        run: ruff format --check .
+
+      - name: Run Mypy
+        run: mypy src tests
+
+      - name: Run Pytest
+        run: pytest
