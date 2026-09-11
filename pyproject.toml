@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-start-automate"
-version = "1.1.6"
+version = "2.0.0a1"
 description = "Prepare a new Django project quickly and automatically and more wonderful things that save you time By django start"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,8 +25,6 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Framework :: Django",
-    "Framework :: Django :: 5.2",
-    "Framework :: Django :: 6.1",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Code Generators",
     "Topic :: Terminals",
@@ -42,7 +40,8 @@ keywords = [
     "python tools", "python script"
 ]
 dependencies = [
-    "click"
+    "click",
+    "packaging>=23.0"
 ]
 
 [project.urls]

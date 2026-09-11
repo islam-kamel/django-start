@@ -5,11 +5,12 @@ from urllib import request
 import json
 import click
 import importlib.metadata
+from packaging.version import Version
 
 try:
     _pkg_version = importlib.metadata.version("django-start-automate")
 except importlib.metadata.PackageNotFoundError:
-    _pkg_version = "1.1.6"
+    _pkg_version = "2.0.0a1"
 
 version = f"{_pkg_version} (beta)"
 
@@ -19,22 +20,19 @@ def latest_version():
         "https://api.github.com/repos/islam-kamel/django-start/tags"
     )
     version_name = json.load(res)[0]["name"]
-    version_int = version_name.split(".")
-    version_int[-1] = version_int[-1].split("-")[0]
-    version_int = [int(num) for num in version_int]
-    return version_name, version_int
+    version_obj = Version(version_name)
+    return version_name, version_obj
 
 
 def current_version():
-    parts = _pkg_version.split(".")
-    return [int(num) for num in parts[:3]]
+    return Version(_pkg_version)
 
 
 def check_available():
     try:
-        var_name, var_int = latest_version()
+        var_name, var_version = latest_version()
         current = current_version()
-        if sum(var_int) > sum(current):
+        if var_version > current:
             print(f"New Update Available {var_name}")
             return True
         else:

@@ -57,4 +57,4 @@ These mechanisms violate security invariants, cross-platform stability, and Unix
 - Negative: Users accustomed to `django-version --update` must use standard package manager commands; adding support for new Django releases requires registry updates.
 
 ## Migration Impact
-- Handled during Phase 2 (Packaging Foundation), Phase 3 (Domain & Policy), and Phase 7 (CLI Modernization).
+- Handled during Phase 1 (Packaging Foundation), Phase 3 (Domain & Policy), and Phase 7 (CLI Modernization).

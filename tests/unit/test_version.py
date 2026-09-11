@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
+from packaging.version import Version
 
 from djstartlib.version import (
     check_available,
@@ -16,75 +17,51 @@ from djstartlib.version import (
 
 
 def test_version_string():
-    """Characterize BC-VER-01: version string constant is '1.1.6 (beta)'."""
-    assert version == "1.1.6 (beta)"
+    """Characterize BC-VER-01: version string constant."""
+    assert version == "2.0.0a1 (beta)"
 
 
-def test_current_version_tuple():
-    """Characterize current_version returning integer list [1, 1, 6]."""
-    assert current_version() == [1, 1, 6]
+def test_current_version_type():
+    """Characterize current_version returning packaging.version.Version."""
+    assert isinstance(current_version(), Version)
+    assert current_version() == Version("2.0.0a1")
 
 
 def test_latest_version_parsing():
     """Characterize parsing GitHub tag API response into version string
-    and integer components.
+    and Version object.
     """
-    payload = [{"name": "1.2.0-beta"}]
+    payload = [{"name": "1.2.0"}]
     mock_response = io.BytesIO(json.dumps(payload).encode("utf-8"))
     with patch("urllib.request.urlopen", return_value=mock_response):
-        tag_name, tag_ints = latest_version()
-        assert tag_name == "1.2.0-beta"
-        assert tag_ints == [1, 2, 0]
+        tag_name, tag_version = latest_version()
+        assert tag_name == "1.2.0"
+        assert tag_version == Version("1.2.0")
 
 
-def test_check_available_when_newer(capsys):
-    """Characterize BC-VER-02: check_available reports update when
-    sum(latest) > sum(current).
-
-    Note: The brief specified ("2.0.0", [2, 0, 0]), but because 1.1.6
-    compares versions using sum(), sum([2, 0, 0]) = 2 is less than
-    sum([1, 1, 6]) = 8, causing 2.0.0 to be reported as not newer.
-    Using 1.1.7 (sum 9 > 8) correctly exercises the update branch.
-    """
+@pytest.mark.parametrize(
+    "latest, expected_newer",
+    [
+        ("1.1.6", False),
+        ("2.0.0a1", False),
+        ("2.0.0", True),
+        ("2028.0", True),
+    ],
+)
+def test_check_available_versions(capsys, latest, expected_newer):
+    """Characterize checking version comparisons with real packaging rules."""
     with patch(
-        "djstartlib.version.latest_version", return_value=("1.1.7", [1, 1, 7])
+        "djstartlib.version.latest_version",
+        return_value=(latest, Version(latest)),
     ):
         result = check_available()
         captured = capsys.readouterr()
-        assert result is True
-        assert "New Update Available 1.1.7" in captured.out
-
-
-def test_check_available_when_not_newer(capsys):
-    """Characterize BC-VER-03: check_available reports latest version
-    when not newer.
-    """
-    with patch(
-        "djstartlib.version.latest_version", return_value=("1.1.6", [1, 1, 6])
-    ):
-        result = check_available()
-        captured = capsys.readouterr()
-        assert result is None
-        assert "You have the latest version" in captured.out
-
-
-def test_check_available_arithmetic_quirk(capsys):
-    """Characterize BC-VER-02 defect: sum(var_int) arithmetic comparison
-    defect.
-
-    Demonstrates known defect where sum([1, 0, 9]) = 10 > sum([1, 1, 6]) = 8.
-    Reports new update available even though 1.0.9 is older.
-    """
-    with patch(
-        "djstartlib.version.latest_version", return_value=("1.0.9", [1, 0, 9])
-    ):
-        with patch(
-            "djstartlib.version.current_version", return_value=[1, 1, 6]
-        ):
-            result = check_available()
-            captured = capsys.readouterr()
+        if expected_newer:
             assert result is True
-            assert "New Update Available 1.0.9" in captured.out
+            assert f"New Update Available {latest}" in captured.out
+        else:
+            assert result is None
+            assert "You have the latest version" in captured.out
 
 
 def test_check_available_url_error():
@@ -107,7 +84,7 @@ def test_cli_version_default():
     runner = CliRunner()
     result = runner.invoke(main, [])
     assert result.exit_code == 0
-    assert "1.1.6 (beta)" in result.output
+    assert "2.0.0a1 (beta)" in result.output
 
 
 def test_cli_version_check_update():
@@ -116,7 +93,8 @@ def test_cli_version_check_update():
     """
     runner = CliRunner()
     with patch(
-        "djstartlib.version.latest_version", return_value=("1.1.6", [1, 1, 6])
+        "djstartlib.version.latest_version",
+        return_value=("2.0.0a1", Version("2.0.0a1")),
     ):
         result = runner.invoke(main, ["--check-update"])
         assert result.exit_code == 0
