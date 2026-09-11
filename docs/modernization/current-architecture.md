@@ -238,7 +238,7 @@ flowchart TD
   sys.path.append(os.path.dirname(os.path.abspath(__file__)))
   ```
 - **Consequence**: Importing the package mutates the global Python `sys.path`. This allowed the author to use bare imports like `from models import DjangoStart` and `from utils import Environment`.
-- **Modernization Risk**: Severe violation of Python packaging standards. Must be eliminated; standard relative or fully qualified absolute package imports (`from django_start.domain import ...`) must be enforced.
+- **Modernization Risk & Resolution**: Severe violation of Python packaging standards. In Phase 1 (Packaging Foundation & `src/` Layout), this is permanently eliminated by transitioning the codebase to `src/django_start/` under the distribution name `django-start-automate`. A dedicated `src/djstartlib/` compatibility redirect shim provides backward compatibility with `DeprecationWarning` for legacy callers without polluting `sys.path`. Fully qualified package imports (`from django_start...`) are enforced throughout.
 
 ---
 
@@ -248,8 +248,8 @@ The table below classifies every identified 1.1.6 contract and defines its targe
 
 | Contract ID | Legacy Description | 1.1.6 Classification | 2.0 Migration Action | 2.0 Architectural Destination / Replacement |
 |---|---|---|---|---|
-| `BC-BOOT-01` | Package entry points importable | `legacy-reliance` | Replace Internally | Entry points move to `src/django_start/cli.py:cli` via `project.scripts` in `pyproject.toml`. |
-| `BC-CLI-01` | `django-start myproject myapp` creates project & app | `intended` | Deprecate (compat adapter) | Legacy CLI syntax adapted to call `django-start new myproject --app myapp`. Deprecation warning emitted. |
+| `BC-BOOT-01` | Package entry points and modules importable | `legacy-reliance` | Deprecate (compat shim) | Entry points move to `src/django_start/cli.py:cli` via `project.scripts` in `pyproject.toml` (under distribution `django-start-automate`). Legacy `djstartlib` imports are preserved via a dedicated `src/djstartlib/` compatibility redirect shim emitting `DeprecationWarning`, established in Phase 1 (Packaging Foundation & `src/` Layout) before retirement at 2.0 GA. |
+| `BC-CLI-01` | `django-start myproject myapp` creates project & app | `intended` | Deprecate (compat adapter) | Legacy CLI positional argument syntax adapted in Phase 7 to delegate to `django-start new myproject --app myapp` with an actionable deprecation warning. |
 | `BC-CLI-02` | `-n` / `--name` custom venv path | `intended` | Replace Internally | Moved to `--venv-path <path>` option in `django-start new`. |
 | `BC-CLI-03` | `-v` / `--virtualenv` deprecation warning | `legacy-reliance` | Remove in 2.0 | Flag removed. Virtualenv handling configured via explicit `--venv` / `--no-venv` flags. |
 | `BC-CLI-04` | `-u` / `--url-path` custom route prefix | `intended` | Replace Internally | Moved to `--app-url <prefix>` option in `django-start new`. |

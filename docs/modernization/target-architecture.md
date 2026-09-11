@@ -47,6 +47,7 @@ flowchart TD
         RUNNER_PORT["CommandRunner (Protocol)"]
         FS_PORT["FileSystem (Protocol)"]
         VENV_PORT["EnvironmentManager (Protocol)"]
+        INSTALLER_PORT["PackageInstaller (Protocol)"]
         SCAFFOLD_PORT["ScaffoldEngine (Protocol)"]
         VERIFY_PORT["ProjectVerifier (Protocol)"]
         RECIPE_PORT["RecipeProvider (Protocol)"]
@@ -55,7 +56,8 @@ flowchart TD
     subgraph Infrastructure ["Infrastructure Adapters (src/django_start/infrastructure)"]
         SUBPROCESS_RUNNER["SubprocessCommandRunner"]
         LOCAL_FS["LocalFileSystem (atomic writes, utf-8)"]
-        STD_VENV["VenvEnvironmentManager"]
+        STD_VENV["VenvEnvironmentManager (stdlib venv)"]
+        PIP_INSTALLER["PipInstaller (pip install)"]
         DJANGO_SCAFFOLD["DjangoScaffoldEngine (startproject/startapp)"]
         MANAGE_VERIFIER["ManagePyVerifier (manage.py check)"]
         BUILTIN_RECIPES["BuiltinRecipeProvider"]
@@ -68,16 +70,47 @@ flowchart TD
     CHECK_CMD --> UC_CHK
     RECIPE_CMD --> UC_REC
 
-    UC_NEW --> CONFIG & RECIPE_MOD & LAYOUT & ERRORS
-    UC_NEW --> RUNNER_PORT & FS_PORT & VENV_PORT & SCAFFOLD_PORT & VERIFY_PORT & RECIPE_PORT
+    UC_NEW --> CONFIG & RECIPE_MOD & LAYOUT & ERRORS & POLICY
+    UC_NEW --> RUNNER_PORT & FS_PORT & VENV_PORT & INSTALLER_PORT & SCAFFOLD_PORT & VERIFY_PORT & RECIPE_PORT
 
     SUBPROCESS_RUNNER -. implements .-> RUNNER_PORT
     LOCAL_FS -. implements .-> FS_PORT
     STD_VENV -. implements .-> VENV_PORT
+    PIP_INSTALLER -. implements .-> INSTALLER_PORT
     DJANGO_SCAFFOLD -. implements .-> SCAFFOLD_PORT
     MANAGE_VERIFIER -. implements .-> VERIFY_PORT
     BUILTIN_RECIPES -. implements .-> RECIPE_PORT
 ```
+
+### 2.1 Domain Layer: Strengthened `VersionPolicy` Specification
+
+The `VersionPolicy` domain component is the single source of truth for runtime framework rules, version track resolution, and platform compatibility constraints:
+
+1. **Framework Track Resolution**:
+   - Maps symbolic tracks (`latest`, `lts`) to concrete Django release lines and immutable tested patch pins:
+     - `latest` resolves to `Django 6.1.1` (the newest tested stable feature release).
+     - `lts` resolves to `Django 5.2.17` (the active supported LTS release).
+     - Explicit version specifiers (e.g. `6.1`, `5.2`, `6.1.1`, `5.2.17`) are validated against the supported matrix and resolved to exact patch pins.
+2. **DEP 20 & CalVer Transition Governance**:
+   - Encapsulates Django DEP 20's transition from the historical 8-month feature cycle to annual CalVer (`YYYY.N`) starting with Django 2028.0 (January 2028).
+   - Treats the `lts` track keyword as a **transitional compatibility alias**. Following Django 6.2 LTS (April 2027), all releases receive uniform 3-year support, retiring the designated LTS model. `VersionPolicy` will emit informational deprecation guidance when `lts` is requested for post-6.2 targets.
+3. **Host Python x Django Matrix Enforcement**:
+   - Pre-validates host interpreter compatibility against target Django versions before scaffolding begins:
+     - Rejects host Python < 3.12 with typed `UnsupportedVersionError`.
+     - Validates that Python 3.12, 3.13, or 3.14 matches the requested Django release.
+4. **Deterministic Pinning Invariants**:
+   - Rejects unpinned or floating versions (`django>=0`, unbounded `pip install django`) in project generation.
+   - Enforces that generated dependency manifests record exact, tested package revisions.
+
+### 2.2 Port & Infrastructure Adapter Mapping
+
+- **`EnvironmentManager` (Port)**: Defines environment lifecycle operations (`create`, `exists`).
+  - **`VenvEnvironmentManager` (Adapter)**: Standard library implementation using Python's built-in `venv` module. Zero extra dependencies required.
+- **`PackageInstaller` (Port)**: Defines package installation contracts (`install`).
+  - **`PipInstaller` (Adapter)**: Standard implementation using `python -m pip install` executed via `CommandRunner` using argument vectors.
+- **Adapter Evaluation Guardrail**:
+  - Alternative adapters (such as `UvInstaller` or unified `UvEnvironmentManager`) remain under active research evaluation.
+  - The architecture does NOT pre-select `UvInstaller` for the core distribution until the comparative evaluation benchmarks and fallback mechanisms are finalized.
 
 ---
 
@@ -166,6 +199,62 @@ class CommandRunner(Protocol):
 | **Check Project** | None (unverified) | `[str(python_bin), "manage.py", "check"]` (in project root) |
 | **Compile Python** | None (unverified) | `[str(python_bin), "-m", "py_compile", str(file_path)]` |
 
+### 4.4 Port Definitions: EnvironmentManager & PackageInstaller
+
+To isolate application use cases from concrete virtual environment mechanics and package management tools, two dedicated ports are defined:
+
+```python
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Protocol, Sequence
+
+
+@dataclass(frozen=True)
+class EnvironmentDetails:
+    root_path: Path
+    python_executable: Path
+    scripts_path: Path
+
+
+class EnvironmentManager(Protocol):
+    def create(self, target_dir: Path) -> EnvironmentDetails:
+        """Create an isolated virtual environment at the target directory."""
+        ...
+
+    def exists(self, target_dir: Path) -> bool:
+        """Check if an environment exists at the target directory."""
+        ...
+
+
+@dataclass(frozen=True)
+class InstallResult:
+    succeeded: bool
+    installed_packages: Sequence[str]
+    error_message: str | None = None
+
+
+class PackageInstaller(Protocol):
+    def install(
+        self,
+        env: EnvironmentDetails,
+        requirements: Sequence[str],
+        timeout: float | None = 180.0,
+    ) -> InstallResult:
+        """Install package specifications into the designated environment."""
+        ...
+```
+
+#### Infrastructure Adapters & Evaluation Policy
+1. **`VenvEnvironmentManager` (Baseline Adapter)**:
+   - Standard library implementation using Python's built-in `venv` module.
+   - Requires zero third-party dependencies.
+2. **`PipInstaller` (Baseline Adapter)**:
+   - Standard implementation using `python -m pip install` executed via `CommandRunner` with explicit argument sequences.
+   - Strictly enforces argument vector execution without `shell=True`.
+3. **Pluggable Architecture & Evaluation Status**:
+   - The architecture deliberately decouples these ports so alternative adapters (such as `UvInstaller` or a combined `UvEnvironmentManager`) can be introduced without modifying application use cases.
+   - Crucially, `UvInstaller` is NOT pre-selected for core until empirical benchmarking across Linux, macOS, and Windows confirms performance, cross-platform parity, and fallback reliability.
+
 ---
 
 ## 5. Filesystem Safety & Controlled I/O Boundary
@@ -209,21 +298,27 @@ Django-Start 2.0 combines **Controlled Django Templates** for initial layout wit
 
 ## 7. Recipe & Profile Engine
 
-### 7.1 Concept & Purpose
-Recipes represent project archetypes. Adding a new style of Django application (e.g. REST API, Dockerized setup, Celery worker) must not require modifying core generation workflows.
+### 7.1 Separation of Profiles and Framework Tracks
+Django-Start 2.0 strictly decouples architectural project profiles from framework release tracks:
 
-### 7.2 Built-In Profiles in 2.0
-1. **`standard` (Default)**:
-   - Django 6.1, SQLite, standard template structure, home view, static assets directory, basic development tooling (`requirements.txt` with locked pins).
-2. **`lts`**:
-   - Django 5.2 LTS, SQLite, identical structure adapted for Django 5.2 compatibility.
-3. **`api`**:
-   - Django 6.1, Django REST Framework, API routing structure, serializer starter, health-check endpoint.
-4. **`minimal`**:
-   - Django 6.1, barebones single-file or ultra-minimal layout without demo HTML views.
+1. **Profiles (Architectural Archetypes)**:
+   Define the structural blueprints, starter applications, template layouts, configuration files, and default third-party packages:
+   - **`standard` (Default)**: Full-featured traditional Django starter with a dedicated core app, base HTML templates, static assets, SQLite, and health-check endpoint.
+   - **`minimal`**: Ultra-lean layout without demo HTML views or extra apps, ideal for microservices, command-line workers, or barebones prototyping.
+   - **`api`**: Modern RESTful starter pre-configured with Django REST Framework, API router wiring, serializer examples, and health endpoint.
+   - **`production`**: Production-ready archetype featuring split settings (`base.py`, `local.py`, `production.py`), Dockerfile, `docker-compose.yml`, WSGI/ASGI production configurations, and security middleware defaults.
 
-### 7.3 Recipe Schema & Metadata
-Recipes are defined declaratively:
+2. **Framework Tracks (`--django`)**:
+   Define the framework release line and exact patch version injected into the project:
+   - **`latest` (Default)**: Resolves to the newest tested stable feature release (currently Django 6.1.1).
+   - **`lts` (Transitional)**: Resolves to the active supported LTS release (currently Django 5.2.17). Maintained as a transitional alias preparing for DEP 20's uniform 3-year support model.
+   - **Explicit Version (`<version>`)**: Exact release line or patch release (e.g. `6.1`, `5.2`, `6.1.1`, `5.2.17`).
+
+Every profile is orthogonal to and compatible with every supported framework track.
+
+### 7.2 Recipe Schema & Metadata
+Recipes are defined declaratively with explicit schema versioning, recipe versioning, and formal dependency/Python specifiers:
+
 ```python
 from dataclasses import dataclass
 from typing import Sequence
@@ -231,14 +326,17 @@ from typing import Sequence
 
 @dataclass(frozen=True)
 class RecipeMetadata:
-    name: str
-    version: str
-    description: str
-    django_release_line: str  # e.g. "6.1" or "5.2"
-    pinned_django_version: str  # e.g. "6.1.1"
-    dependencies: Sequence[str]  # e.g. ["Django==6.1.1", "djangorestframework==3.15.2"]
-    template_dir: str
-    post_generate_hooks: Sequence[str] = ()
+    schema_version: str  # Metadata specification version (e.g. "1.0")
+    recipe_version: str  # Semantic version of the recipe (e.g. "2.0.0")
+    name: str  # Profile identifier (e.g. "standard", "api", "minimal", "production")
+    display_name: str  # Human-readable title
+    description: str  # Comprehensive description of project archetype
+    python_requires: str  # Formal Python version specifier (e.g. ">=3.12")
+    django_requires: str  # Formal Django version specifier (e.g. ">=5.2")
+    supported_tracks: Sequence[str]  # e.g. ("latest", "lts")
+    dependencies: Sequence[str]  # Formal package specifiers (e.g. ["djangorestframework>=3.15,<4"])
+    template_dir: str  # Relative POSIX path to template files
+    post_generate_hooks: Sequence[str] = ()  # Safe internal hooks executed post-scaffolding
 ```
 
 ---
@@ -260,9 +358,17 @@ django-start
 ### 8.1 Detailed Command Specifications
 
 #### `django-start new <project_name>`
-- **Inputs**: `project_name` (required argument), `--app <app_name>` (default: `core`), `--django [6.1|5.2]` (default: `6.1`), `--profile [standard|api|minimal|lts]`, `--venv-path <path>` (default: `.venv`), `--no-venv` (flag to use current interpreter), `--dry-run` (preview actions without filesystem mutation).
-- **Execution**: Validates inputs, creates venv, installs pinned dependencies, scaffolds project, renders recipe templates, runs `manage.py check`, reports success.
-- **Rollback**: Cleans staging files if any step fails.
+- **Inputs**:
+  - `project_name` (required argument): Valid Python identifier for the project directory and package.
+  - `--app <app_name>` (default: `core`): Name of the initial Django application created inside the project.
+  - `--profile <standard|minimal|api|production>` (default: `standard`): Architectural archetype defining project layout and templates.
+  - `--django <latest|lts|version>` (default: `latest`): Framework track or explicit version. `latest` resolves to current stable feature line (Django 6.1.1); `lts` resolves to active LTS (Django 5.2.17, transitional alias per DEP 20); or explicit version string (e.g. `6.1.1`, `5.2.17`).
+  - `--venv-path <path>` (default: `.venv`): Custom location for virtual environment.
+  - `--no-venv`: Flag to skip environment provisioning and use the executing interpreter.
+  - `--dry-run`: Preview planned actions and generated file tree without mutating the filesystem.
+  - `--force`: Override conflict detection (backs up existing colliding files to `.bak`).
+- **Execution**: Validates inputs via `VersionPolicy`, creates virtual environment (`EnvironmentManager`), installs exact pinned dependencies (`PackageInstaller`), scaffolds base project (`ScaffoldEngine`), renders recipe templates (`FileSystem`), runs `manage.py check` verification (`ProjectVerifier`), reports success.
+- **Rollback**: Safely cleans temporary staging resources if any step fails.
 
 #### `django-start add <app_name>`
 - **Inputs**: `app_name` (required argument), `--project-dir <path>` (default: current directory).

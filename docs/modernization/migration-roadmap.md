@@ -19,7 +19,7 @@ flowchart TD
         GEN_TEST["Tier 3: Generated-Project Verification (manage.py check & py_compile)"]
         INT_TEST["Tier 2: Application Use Case & Adapter Contract Tests (Mocked Boundaries)"]
         UNIT_TEST["Tier 1: Fast Domain & Unit Tests (Validation, Policies, Layout)"]
-        CHAR_TEST["Foundation: 45 Legacy Characterization Tests (Python 3.11 Isolation)"]
+        CHAR_TEST["Foundation: 45 Legacy Characterization Tests (Python 3.11 Isolation, djstartlib Shim)"]
     end
 
     CHAR_TEST --> UNIT_TEST
@@ -32,8 +32,14 @@ flowchart TD
 
 1. **Foundation: Legacy Characterization Suite**:
    - The existing 45 tests in `tests/` remain intact during early phases.
-   - Run in isolated virtual environments under Python 3.11.
-   - Serve as an unyielding regression detector while legacy interfaces remain.
+   - **Execution**: Run in an isolated, dedicated virtual environment under Python 3.11 (the verified baseline environment).
+   - **Source Scope**: Explicitly restricted to verifying legacy compatibility contracts (`BC-BOOT-01` through `BC-ORCH-01`) and the `djstartlib` compatibility redirect shim in `src/djstartlib/`. Does not gate new 2.0 modules that leverage modern Python 3.12+ features or Django 6.x.
+   - **Retirement Criteria**: Eligible for retirement at or after 2.0 GA, subject to explicit gates:
+     1. Complete implementation and verification of all 2.0 application use cases and CLI subcommands replacing legacy procedural functions.
+     2. Zero remaining production reliance on legacy internal modules (`djstartlib` becomes purely a deprecated shim emitting `DeprecationWarning`).
+     3. Comprehensive replacement test suite covering 100% of the contracts originally guarded by characterization tests (Tier 1 unit tests, Tier 2 use cases, and Tier 3/4 smoke tests).
+     4. Formal deprecation announcement in release notes and documentation with an explicit sunset timeline for the `djstartlib` package shim.
+     Until 2.0 GA, this suite remains a mandatory, blocking CI check against regressions.
 2. **Tier 1: Unit & Domain Tests**:
    - Zero filesystem, network, or subprocess I/O.
    - Test `ProjectConfig`, naming validation regexes, recipe schemas, version comparison policies, and CLI argument parsing.
@@ -43,11 +49,11 @@ flowchart TD
    - Verify that use cases construct correct command sequences and handle errors predictably without spawning processes.
 4. **Tier 3: Generated Project Verification Tests**:
    - Real subprocess executions in isolated temporary folders (`tmp_path`).
-   - Run `django-admin startproject` and apply recipes.
+   - Run `django-admin startproject` and apply recipes across supported Django release lines (Django 5.2 LTS and Django 6.1).
    - **Mandatory Verification**: Every generated project configuration must pass `python manage.py check` and compile via `python -m py_compile`.
 5. **Tier 4: Packaging & CLI Smoke Tests**:
    - Build wheels via `python -m build`.
-   - Install wheels into a fresh, isolated test venv.
+   - Install wheels into a fresh, isolated test venv across Ubuntu, Windows, and macOS.
    - Execute `django-start --help`, `django-start doctor`, and `django-start new smoke_test`.
 
 ---
@@ -59,27 +65,29 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph PR ["Pull Request Pipeline (Blocking)"]
-        PR_LINT["Ruff Lint & Format"]
-        PR_TYPE["Mypy Strict Check"]
-        PR_CHAR["Legacy 1.1.6 Tests (Py 3.11)"]
+        PR_PKG["Packaging Build & Metadata Verification"]
+        PR_LINT["Ruff Lint & Format Check"]
+        PR_TYPE["Mypy Type Check (Incremental)"]
+        PR_CHAR["Legacy 1.1.6 Tests (Py 3.11 Isolation)"]
         PR_UNIT["2.0 Test Suite (Py 3.12-3.14)"]
         PR_SMOKE["Generated Project Smoke (Linux)"]
     end
 
     subgraph SCHEDULED ["Scheduled / Release Pipeline"]
-        NATIVE_WIN["Windows 11 Runner"]
-        NATIVE_MAC["macOS 14+ Runner"]
+        NATIVE_WIN["Windows 11 Runner (Py 3.12-3.14)"]
+        NATIVE_MAC["macOS 14+ Runner (Py 3.12-3.14)"]
         CANARY["Python 3.15 RC Canary"]
         CODEQL["CodeQL Analysis v3"]
-        PKG_BUILD["Wheel & sdist Build Verification"]
+        PKG_RELEASE["Release Artifact Verification (sdist & wheel)"]
     end
 
     PR --> SCHEDULED
 ```
 
-- **PR Gate (Fast, Blocking)**: Runs on Ubuntu with Python 3.12, 3.13, 3.14. Must finish in under 3 minutes.
-- **Cross-Platform Gate (Release/Main)**: Runs on native Windows and macOS runners.
+- **PR Gate (Fast, Blocking)**: Runs on Ubuntu with Python 3.12, 3.13, 3.14 for 2.0 suites, and isolated Python 3.11 for characterization. Must finish in under 3 minutes. Includes packaging build verification, Ruff format and lint checks, incremental Mypy static analysis, and generated project verification.
+- **Cross-Platform Gate (Release/Main)**: Runs on native Windows 11 and macOS 14+ runners across Python 3.12 through 3.14.
 - **Canary Gate**: Weekly scheduled run against Python 3.15 preview.
+- **Release Verification Gate**: Validates wheel and sdist installation in clean environments prior to publishing.
 
 ---
 
@@ -87,8 +95,8 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    P0["Phase 0: Baseline & Discovery (Current Complete State)"] --> P1["Phase 1: Tooling & Quality Gate Modernization"]
-    P1 --> P2["Phase 2: Packaging Foundation & src/ Layout"]
+    P0["Phase 0: Baseline & Discovery (Current Complete State)"] --> P1["Phase 1: Packaging Foundation & src/ Layout"]
+    P1 --> P2["Phase 2: Modern Quality Tooling (Ruff + Mypy)"]
     P2 --> P3["Phase 3: Domain Models & Ports Definition"]
     P3 --> P4["Phase 4: Infrastructure Adapters (Safe Runner & FS)"]
     P4 --> P5["Phase 5: Recipe Engine & Controlled Templates"]
@@ -98,29 +106,54 @@ flowchart TD
     P8 --> P9["Phase 9: Documentation, Deprecations & 2.0 Release"]
 ```
 
+### 4.1 Phase Ordering & Dependency Rationale: Why Packaging Precedes Tooling
+
+The implementation roadmap intentionally places **Phase 1: Packaging Foundation & `src/` Layout** before **Phase 2: Modern Quality Tooling (Ruff + Mypy)**:
+
+1. **Canonical Layout Stability**:
+   Linters and type checkers require explicit path targets (`src = ["src", "tests"]`, module roots, import resolution boundaries). If tooling were configured in Phase 1 against the legacy flat `djstartlib/` layout and `setup.cfg`, the entire configuration would immediately suffer churn when files relocate to `src/django_start/` in Phase 2. Establishing the `src/` layout first means tooling is configured once against the permanent directory tree.
+2. **Eliminating Global State and Import Ambiguity**:
+   The 1.1.6 codebase used runtime `sys.path.append(...)` in `djstartlib/models/__init__.py` to enable bare imports (`from models import ...`). Adopting the `src/` layout with `src/django_start/` and the `src/djstartlib/` compatibility redirect establishes clean module discovery. Ruff and Mypy can then analyze idiomatic, fully qualified Python imports without needing synthetic path workarounds.
+3. **Single Packaging Authority (PEP 621)**:
+   Modern tooling configuration lives in `pyproject.toml` under `[tool.ruff]` and `[tool.mypy]`. Migrating packaging metadata from legacy `setup.py` and `setup.cfg` into `pyproject.toml` in Phase 1 creates the unified configuration host. Phase 2 then cleanly appends tooling tables to `pyproject.toml` without cross-file synchronization debt.
+4. **Strict Phase Dependency Sequence**:
+   - Phase 0 (Baseline) establishes verified characterization tests.
+   - Phase 1 (Packaging Foundation) moves code to `src/`, creates `pyproject.toml` (PEP 621), and builds verified wheels.
+   - Phase 2 (Modern Quality Tooling) configures Ruff and Mypy over `src/` and `tests/`, replacing Black, Flake8, and Pyupgrade.
+   - Phases 3 through 6 build domain, infrastructure, recipes, and application use cases under strict typing and linting gates.
+   - Phase 7 builds the modern Click CLI tree and wires deprecations.
+   - Phase 8 verifies generated projects across all OS and framework matrix combinations.
+   - Phase 9 finalizes documentation, deprecation guides, and release artifacts.
+
 ---
 
-### Phase 1: Tooling & Quality Gate Modernization
+### Phase 1: Packaging Foundation & `src/` Layout
 
-- **Objective**: Introduce Ruff and Mypy into the repository quality pipeline without modifying production behavior or breaking characterization tests.
-- **Components Affected**: `pyproject.toml`, `.pre-commit-config.yaml`, `requirements-dev.txt`.
-- **Prerequisites**: Baseline 1.1.6 green (current state).
-- **Contracts Preserved**: All 31 contracts (`BC-BOOT-01` through `BC-ORCH-01`).
-- **Tests Required**: 45/45 characterization tests passing; `pre-commit run --all-files` green.
+- **Objective**: Adopt standard `src/` layout (`src/django_start/`), configure PEP 621 metadata in `pyproject.toml`, establish `django-start-automate` distribution, create a backward compatibility redirect for `djstartlib` in `src/djstartlib/`, and delete `setup.py` and `setup.cfg`.
+- **Components Affected**: Move `djstartlib/` to `src/django_start/`, add `src/djstartlib/` compatibility shim, migrate packaging metadata to `pyproject.toml`, delete `setup.py` and `setup.cfg`.
+- **Prerequisites**: Phase 0 baseline complete and green.
+- **Dependencies**: Prerequisite for Phase 2; establishes canonical paths and eliminates `sys.path` pollution.
+- **Contracts Preserved**: All 31 contracts preserved; `BC-BOOT-01` supported via `src/djstartlib/` shim.
+- **Tests Required**: Wheel build succeeds via `python -m build`; entry points execute; 45/45 characterization tests pass under Python 3.11 isolation and Python 3.12+.
+- **Rollback Boundary**: Restore `setup.cfg`, `setup.py`, and flat directory layout.
+- **Completion Criteria**: `python -m build` generates clean wheel and sdist containing `django_start` and `djstartlib` redirect; zero `sys.path.append` in package source; legacy import paths remain functional with `DeprecationWarning`.
+
+---
+
+### Phase 2: Modern Quality Tooling (Ruff + Mypy)
+
+- **Objective**: Introduce Ruff (linting and formatting) and Mypy (static type checking) into the repository quality pipeline against the established `src/` layout, replacing Black, Flake8, and Pyupgrade.
+- **Components Affected**: `pyproject.toml` (`[tool.ruff]`, `[tool.mypy]`), `.pre-commit-config.yaml`, `requirements-dev.txt`.
+- **Prerequisites**: Phase 1 complete (`src/` layout and PEP 621 metadata established).
+- **Dependencies**: Depends on Phase 1 for canonical layout and centralized `pyproject.toml`. Enforces quality standards for Phase 3 and all subsequent phases.
+- **Incremental Typing Strategy**:
+  - `src/django_start/`: Strict type checking enforced (`strict = true`, `disallow_untyped_defs = true`, `disallow_any_generics = true`, `check_untyped_defs = true`, `warn_return_any = true`). A `py.typed` marker is bundled in `src/django_start/`.
+  - `src/djstartlib/` (Compatibility Shim): Lenient typing configuration (`disallow_untyped_defs = false`). Public entry points and module redirects have explicit boundary signatures, while legacy internal logic is not burdened with exhaustive typing prior to retirement.
+  - `tests/`: Targeted typing checks (`check_untyped_defs = true`), ensuring test assertions and helper types are verified without requiring rigid typing overhead on legacy test fixtures.
+- **Contracts Preserved**: All 31 contracts (`BC-BOOT-01` through `BC-ORCH-01`); zero behavioral changes.
+- **Tests Required**: 45/45 characterization tests passing; `pre-commit run --all-files` green; `ruff check`, `ruff format --check`, and `mypy` execute cleanly.
 - **Rollback Boundary**: Revert `pyproject.toml` and `.pre-commit-config.yaml` to Black/Flake8.
-- **Completion Criteria**: Pre-commit runs Ruff format and Ruff check cleanly across all repository files.
-
----
-
-### Phase 2: Packaging Foundation & `src/` Layout
-
-- **Objective**: Adopt standard `src/` layout (`src/django_start/`), configure PEP 621 metadata in `pyproject.toml`, establish `django-start-automate` distribution, and create a backward compatibility redirect for `djstartlib`.
-- **Components Affected**: Move `djstartlib/` to `src/django_start/`, add `src/djstartlib/` shim, delete `setup.py` and `setup.cfg`.
-- **Prerequisites**: Phase 1 complete.
-- **Contracts Preserved**: `BC-BOOT-01` (entry points remain importable via shim).
-- **Tests Required**: Wheel build succeeds; entry points execute; test suite imports from installed or src package cleanly.
-- **Rollback Boundary**: Restore `setup.cfg` and flat layout.
-- **Completion Criteria**: `python -m build` generates clean wheel containing `django_start` and `djstartlib` redirect.
+- **Completion Criteria**: Pre-commit and CI run Ruff format, Ruff check, and Mypy cleanly; zero style or typing violations; 100% type checking pass rate on new code.
 
 ---
 
