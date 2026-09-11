@@ -7,7 +7,11 @@ on:
       - 'setup.py'
       - 'pyproject.toml'
       - 'djstartlib/**'
+      - 'README.md'
+      - 'LICENSE'
+      - 'MANIFEST.in'
       - '.github/workflows/package-validation.yml'
+      - '.github/workflows/release.yml'
   push:
     branches:
       - main
@@ -16,8 +20,15 @@ on:
       - 'setup.py'
       - 'pyproject.toml'
       - 'djstartlib/**'
+      - 'README.md'
+      - 'LICENSE'
+      - 'MANIFEST.in'
       - '.github/workflows/package-validation.yml'
+      - '.github/workflows/release.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   validate-package:
@@ -50,7 +61,9 @@ jobs:
           test-env-wheel/bin/django-start --help
           test-env-wheel/bin/django-version --help
           test-env-wheel/bin/python -c "import djstartlib"
-          test-env-wheel/bin/python -c "import importlib.metadata; assert importlib.metadata.version('django-start-automate') == '1.1.6'"
+          WHEEL_VER=$(test-env-wheel/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
+          echo "Installed wheel version: $WHEEL_VER"
+          echo "WHEEL_VER=$WHEEL_VER" >> $GITHUB_ENV
 
       - name: Test SDist Installation
         run: |
@@ -58,3 +71,9 @@ jobs:
           test-env-sdist/bin/pip install dist/*.tar.gz
           test-env-sdist/bin/django-start --help
           test-env-sdist/bin/python -c "import djstartlib"
+          SDIST_VER=$(test-env-sdist/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
+          echo "Installed sdist version: $SDIST_VER"
+          if [ "$SDIST_VER" != "${{ env.WHEEL_VER }}" ]; then
+            echo "Error: Wheel version (${{ env.WHEEL_VER }}) and sdist version ($SDIST_VER) do not match."
+            exit 1
+          fi

@@ -8,8 +8,12 @@ on:
 jobs:
   build-and-validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,20 +33,6 @@ jobs:
       - name: Validate distribution metadata
         run: python -m twine check dist/*
 
-      - name: Verify Version Consistency
-        id: check_version
-        run: |
-          # Remove optional leading 'v' from tag
-          TAG_VERSION=${GITHUB_REF_NAME#v}
-          # Extract version from setup.cfg
-          PACKAGE_VERSION=$(grep -E "^version\s*=" setup.cfg | awk -F'=' '{print $2}' | tr -d ' ' | tr -d '"' | tr -d "'")
-          echo "Tag version: $TAG_VERSION"
-          echo "Package version: $PACKAGE_VERSION"
-          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
-            echo "Error: Tag version ($TAG_VERSION) does not match package version ($PACKAGE_VERSION)"
-            exit 1
-          fi
-
       - name: Test Wheel Installation
         run: |
           python -m venv test-env-wheel
@@ -50,6 +40,9 @@ jobs:
           test-env-wheel/bin/django-start --help
           test-env-wheel/bin/django-version --help
           test-env-wheel/bin/python -c "import djstartlib"
+          WHEEL_VER=$(test-env-wheel/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
+          echo "Installed wheel version: $WHEEL_VER"
+          echo "WHEEL_VER=$WHEEL_VER" >> $GITHUB_ENV
 
       - name: Test SDist Installation
         run: |
@@ -57,18 +50,42 @@ jobs:
           test-env-sdist/bin/pip install dist/*.tar.gz
           test-env-sdist/bin/django-start --help
           test-env-sdist/bin/python -c "import djstartlib"
+          SDIST_VER=$(test-env-sdist/bin/python -c "import importlib.metadata; print(importlib.metadata.version('django-start-automate'))")
+          echo "Installed sdist version: $SDIST_VER"
+          echo "SDIST_VER=$SDIST_VER" >> $GITHUB_ENV
 
-      - name: Calculate Hashes
+      - name: Verify Version Consistency
         run: |
-          cd dist
-          sha256sum * > SHA256SUMS
-          cat SHA256SUMS
+          TAG_VERSION=${{ github.event.release.tag_name }}
+          # Normalize optional leading 'v'
+          TAG_VERSION=${TAG_VERSION#v}
+          echo "Release tag version: $TAG_VERSION"
+          echo "Wheel version: ${{ env.WHEEL_VER }}"
+          echo "SDist version: ${{ env.SDIST_VER }}"
+
+          if [ "$TAG_VERSION" != "${{ env.WHEEL_VER }}" ]; then
+            echo "Error: Release tag version ($TAG_VERSION) does not match wheel version (${{ env.WHEEL_VER }})"
+            exit 1
+          fi
+          if [ "$TAG_VERSION" != "${{ env.SDIST_VER }}" ]; then
+            echo "Error: Release tag version ($TAG_VERSION) does not match sdist version (${{ env.SDIST_VER }})"
+            exit 1
+          fi
+
+      - name: Prepare Release Bundle
+        run: |
+          mkdir -p release/packages
+          mkdir -p release/evidence
+          cp dist/* release/packages/
+          cd release/packages
+          sha256sum * > ../evidence/SHA256SUMS
+          cat ../evidence/SHA256SUMS
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-artifacts
-          path: dist/
+          name: release-bundle
+          path: release/
           if-no-files-found: error
 
   publish:
@@ -85,10 +102,16 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist-artifacts
-          path: dist/
+          name: release-bundle
+          path: release/
+
+      - name: Verify Hashes
+        run: |
+          cd release/packages
+          sha256sum -c ../evidence/SHA256SUMS
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@67339c736fd9354cd4f8cb0b744f2b82a74b5c70 # v1.12.3
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
+          packages-dir: release/packages/
           skip-existing: false

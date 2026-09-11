@@ -1,6 +1,6 @@
 # Django-Start Release Setup
 
-This document outlines the one-time manual setup required to enable production PyPI publishing for Django-Start. 
+This document outlines the one-time manual setup required to enable production PyPI publishing for Django-Start.
 
 ## GitHub Configuration
 - [ ] **Create environment `pypi`**: Go to Repository Settings -> Environments -> New environment. Name it `pypi`.
