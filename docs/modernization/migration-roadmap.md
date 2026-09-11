@@ -194,7 +194,7 @@ The implementation roadmap intentionally places **Phase 1: Packaging Foundation 
 - **Components Affected**: `src/django_start/recipes/`, `src/django_start/infrastructure/builtin_recipes.py`.
 - **Prerequisites**: Phase 4 complete.
 - **Contracts Preserved**: Replaces fragile string bracket matching (`line_list.index("]\n")`).
-- **Tests Required**: Snapshot tests verifying rendered settings, URLs, and templates across `standard`, `lts`, `api`, and `minimal` recipes.
+- **Tests Required**: Snapshot tests verifying rendered settings, URLs, and templates across `standard`, `minimal`, `api`, and `production` profiles on supported tracks.
 - **Rollback Boundary**: Revert recipe directory and template assets.
 - **Completion Criteria**: Recipe engine renders valid Python files that compile under `py_compile` without string hacking.
 
