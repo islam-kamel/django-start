@@ -966,7 +966,7 @@ A release workflow that has never successfully published a unique version throug
    - **Semantic Package Identity:** When a package's underlying semantics materially change (e.g., new `src` layout, `pyproject.toml`, Python version bounds), it must not be built or identified under the historical published version number (e.g. `1.1.6`). It must transition to the approved pre-release identifier (e.g., `2.0.0a1`).
 
 4. **Pre-commit Integrity & Sandbox Constraints**
-   - **Pre-commit Discipline:** 
+   - **Pre-commit Discipline:**
      - Never suppress `pre-commit` failures using `|| true`.
      - Always run `pre-commit run --all-files` twice locally before committing. Both consecutive runs must be entirely clean with zero auto-modifications.
    - **Sandbox Limitation (Git):** Always use `BypassSandbox: true` when executing `pre-commit` to prevent `Operation not permitted` errors related to Git inside the sandbox.

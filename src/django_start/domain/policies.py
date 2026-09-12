@@ -3,6 +3,7 @@ Domain policies for validation and version management.
 
 These policies must be pure and free from ambient system state (no I/O, no sys.version).
 """
+
 import keyword
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -25,12 +26,15 @@ def is_valid_identifier(name: str) -> bool:
 def validate_identifier(name: str, entity_type: str = "Identifier") -> None:
     """Validate identifier and raise a typed error if invalid."""
     if not is_valid_identifier(name):
-        raise InvalidIdentifierError(f"{entity_type} '{name}' is not a valid Python identifier.")
+        raise InvalidIdentifierError(
+            f"{entity_type} '{name}' is not a valid Python identifier."
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class FrameworkRelease:
     """Immutable representation of a supported Django framework release."""
+
     series: str
     tested_version: Version
     django_requires: SpecifierSet
@@ -43,6 +47,7 @@ class FrameworkRelease:
 @dataclass(frozen=True, slots=True)
 class FrameworkRegistry:
     """Immutable registry of supported framework releases."""
+
     releases: tuple[FrameworkRelease, ...]
 
     def __init__(self, releases: Sequence[FrameworkRelease]) -> None:
@@ -66,7 +71,9 @@ BUILTIN_REGISTRY = FrameworkRegistry(
             series="5.2",
             tested_version=Version("5.2.17"),
             django_requires=SpecifierSet(">=5.2.17,<5.3"),
-            python_requires=SpecifierSet(">=3.10"),  # Django 5.2 supports >=3.10
+            python_requires=SpecifierSet(
+                ">=3.10"
+            ),  # Django 5.2 supports >=3.10
             is_lts=True,
             is_calver=False,
         ),
@@ -92,21 +99,25 @@ class VersionPolicy:
             try:
                 return max(
                     (r for r in self._registry.releases if not r.is_lts),
-                    key=lambda r: r.tested_version
+                    key=lambda r: r.tested_version,
                 )
             except ValueError:
                 # Fallback if no non-LTS releases exist, just get the max
-                return max(self._registry.releases, key=lambda r: r.tested_version)
+                return max(
+                    self._registry.releases, key=lambda r: r.tested_version
+                )
 
         elif track == "lts":
             # Return the active LTS release
             try:
                 return max(
                     (r for r in self._registry.releases if r.is_lts),
-                    key=lambda r: r.tested_version
+                    key=lambda r: r.tested_version,
                 )
             except ValueError:
-                raise UnsupportedVersionError("No LTS releases available in the registry.")
+                raise UnsupportedVersionError(
+                    "No LTS releases available in the registry."
+                )
 
         else:
             # Try to match the series (e.g. '6.1', '5.2', '2028.0')
@@ -120,13 +131,17 @@ class VersionPolicy:
                     return release
 
             # Format the error with available choices
-            available = ", ".join(f"'{r.series}'" for r in self._registry.releases)
+            available = ", ".join(
+                f"'{r.series}'" for r in self._registry.releases
+            )
             raise UnsupportedVersionError(
                 f"Unsupported framework track or version: '{track}'. "
                 f"Available releases: {available}, or 'latest', 'lts'."
             )
 
-    def validate_python_compatibility(self, host_python: str, release: FrameworkRelease) -> None:
+    def validate_python_compatibility(
+        self, host_python: str, release: FrameworkRelease
+    ) -> None:
         """
         Validate explicit host Python version against the release requirements.
         Raises UnsupportedVersionError if incompatible.
