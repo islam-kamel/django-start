@@ -4,6 +4,7 @@ Tests to prove the structural compatibility of port definitions.
 These tests use minimal fake implementations merely to prove that the Protocol
 definitions and their typed interfaces are usable, instantiable, and satisfy type checkers.
 """
+
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from django_start.ports.runner import Command, CommandResult, CommandRunner
 from django_start.ports.verifier import ProjectVerifier
 
 # -- FAKES --
+
 
 class FakeCommandRunner(CommandRunner):
     def run(self, command: Command) -> CommandResult:
@@ -91,6 +93,7 @@ class FakeProjectVerifier(ProjectVerifier):
 
 
 # -- TESTS --
+
 
 def test_command_dataclass_immutability_and_env_protection() -> None:
     original_env = {"A": "1"}

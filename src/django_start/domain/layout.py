@@ -1,6 +1,7 @@
 """
 Domain model for deterministic project layout paths.
 """
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,10 +12,11 @@ from django_start.domain.config import ProjectConfig
 class ProjectLayout:
     """
     Immutable representation of deterministic, stable paths in the generated project.
-    
+
     Contains only safe, conceptual paths derived from project configuration.
     Does not read from the filesystem or include unresolved infrastructure paths.
     """
+
     project_root: Path
     django_package_dir: Path
     manage_py: Path

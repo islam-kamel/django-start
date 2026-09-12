@@ -1,4 +1,5 @@
 """Tests for the domain configuration models."""
+
 from pathlib import Path
 
 import pytest
@@ -16,7 +17,10 @@ def test_app_config_valid() -> None:
 
 
 def test_app_config_invalid() -> None:
-    with pytest.raises(InvalidIdentifierError, match="Application name 'my-app' is not a valid Python identifier."):
+    with pytest.raises(
+        InvalidIdentifierError,
+        match="Application name 'my-app' is not a valid Python identifier.",
+    ):
         AppConfig("my-app")
 
 
@@ -42,7 +46,10 @@ def test_project_config_valid() -> None:
 
 
 def test_project_config_invalid_name() -> None:
-    with pytest.raises(InvalidIdentifierError, match="Project name 'my-project' is not a valid Python identifier."):
+    with pytest.raises(
+        InvalidIdentifierError,
+        match="Project name 'my-project' is not a valid Python identifier.",
+    ):
         ProjectConfig(
             name="my-project",
             target_dir=Path("/tmp/my-project"),
@@ -53,7 +60,10 @@ def test_project_config_invalid_name() -> None:
 
 
 def test_project_config_duplicate_apps() -> None:
-    with pytest.raises(ConfigurationError, match="Duplicate application name requested: 'core'"):
+    with pytest.raises(
+        ConfigurationError,
+        match="Duplicate application name requested: 'core'",
+    ):
         ProjectConfig(
             name="my_project",
             target_dir=Path("/tmp/my_project"),
