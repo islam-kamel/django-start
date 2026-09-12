@@ -948,3 +948,26 @@ PyPI outcome
 
 ### No False Verification Claims
 A release workflow that has never successfully published a unique version through Trusted Publishing is not described as fully production-verified.
+
+## Architectural & Workflow Rules (Learned from Modernization)
+
+1. **Testing Boundaries & Legacy Characterization**
+   - **Strict Test Isolation:** Never conflate historical legacy characterization tests with modern 2.x behavior tests.
+   - If a product behavior changes, **do not** rewrite the legacy characterization test to assert the new behavior.
+   - Keep the historical test frozen in its legacy module and create a new, separate test to cover the new behavior.
+   - Never claim that legacy characterization tests are "passing" if you modified them to match modern output.
+   - **No Environment Skipping:** Do not use `try/except` skipping for missing dependencies in package boundary tests. Tests must explicitly fail if the boundary cannot be validated.
+
+2. **Dependency Ranges & Version Parsing**
+   - **Bounded Dependency Ranges:** Do not exact-pin patch versions in `pyproject.toml` optional/development dependencies. Always use bounded major-version ranges (e.g., `ruff>=0.16.7,<1`, `mypy>=2.3.1,<3`, `pytest>=8.0.0,<9`).
+   - **Version Parsing:** Always use `packaging.version.Version` for standards-compliant version comparison. Never use raw string splitting/slicing on version identifiers (which breaks on identifiers like `2.0.0a1`).
+
+3. **Package Identity Correctness**
+   - **Semantic Package Identity:** When a package's underlying semantics materially change (e.g., new `src` layout, `pyproject.toml`, Python version bounds), it must not be built or identified under the historical published version number (e.g. `1.1.6`). It must transition to the approved pre-release identifier (e.g., `2.0.0a1`).
+
+4. **Pre-commit Integrity & Sandbox Constraints**
+   - **Pre-commit Discipline:** 
+     - Never suppress `pre-commit` failures using `|| true`.
+     - Always run `pre-commit run --all-files` twice locally before committing. Both consecutive runs must be entirely clean with zero auto-modifications.
+   - **Sandbox Limitation (Git):** Always use `BypassSandbox: true` when executing `pre-commit` to prevent `Operation not permitted` errors related to Git inside the sandbox.
+   - **Sandbox Limitation (Network):** When running clean virtual environment smoke tests that require fetching external packages from PyPI (e.g., `pip install dist/*.whl`), always use `BypassSandbox: true` because the standard sandbox has no network access.
