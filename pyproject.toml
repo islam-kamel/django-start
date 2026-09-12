@@ -57,6 +57,7 @@ where = ["src"]
 [project.optional-dependencies]
 test = [
     "pytest>=8.0.0,<10",
+    "pytest-cov>=6.0.0,<7",
 ]
 dev = [
     "pre-commit>=4.0.0,<5",
