@@ -99,3 +99,14 @@ def test_create_cleans_up_on_failure_rmtree_oserror(tmp_path: Path) -> None:
         with mock.patch("shutil.rmtree", side_effect=OSError("rm fail")):
             with pytest.raises(EnvironmentCreationError):
                 manager.create(target)
+
+
+def test_create_cleans_up_on_failure_no_target(tmp_path: Path) -> None:
+    manager = VenvEnvironmentManager()
+    target = tmp_path / "venv"
+
+    with mock.patch(
+        "venv.EnvBuilder.create", side_effect=Exception("failed before create")
+    ):
+        with pytest.raises(EnvironmentCreationError):
+            manager.create(target)
