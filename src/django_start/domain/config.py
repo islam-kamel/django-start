@@ -3,29 +3,29 @@ Domain configuration models for Django-Start 2.0.
 
 Immutable, validated representations of user intent.
 """
+
 from collections.abc import Sequence
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from django_start.domain.errors import ConfigurationError
 from django_start.domain.policies import validate_identifier
 
 
-class Profile(str, Enum):
+class Profile(StrEnum):
     """Architectural project profiles."""
+
     STANDARD = "standard"
     MINIMAL = "minimal"
     API = "api"
     PRODUCTION = "production"
 
-    def __str__(self) -> str:
-        return self.value
-
 
 @dataclass(frozen=True, slots=True)
 class AppConfig:
     """Immutable representation of a Django application to be generated."""
+
     name: str
 
     def __post_init__(self) -> None:
@@ -35,6 +35,7 @@ class AppConfig:
 @dataclass(frozen=True, slots=True)
 class ProjectConfig:
     """Immutable representation of project generation intent."""
+
     name: str
     target_dir: Path
     profile: Profile
@@ -62,7 +63,9 @@ class ProjectConfig:
         app_names = set()
         for app in apps_tuple:
             if app.name in app_names:
-                raise ConfigurationError(f"Duplicate application name requested: '{app.name}'")
+                raise ConfigurationError(
+                    f"Duplicate application name requested: '{app.name}'"
+                )
             app_names.add(app.name)
 
         object.__setattr__(self, "apps", apps_tuple)

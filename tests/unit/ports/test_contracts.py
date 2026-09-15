@@ -2,8 +2,10 @@
 Tests to prove the structural compatibility of port definitions.
 
 These tests use minimal fake implementations merely to prove that the Protocol
-definitions and their typed interfaces are usable, instantiable, and satisfy type checkers.
+definitions and their typed interfaces are usable, instantiable,
+and satisfy type checkers.
 """
+
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -26,11 +28,13 @@ from django_start.ports.verifier import ProjectVerifier
 
 # -- FAKES --
 
+
 class FakeCommandRunner(CommandRunner):
     def run(self, command: Command) -> CommandResult:
         if "fail" in command.argv:
             raise CommandExecutionError(
                 message="Command failed",
+                argv=command.argv,
                 returncode=1,
                 stdout="",
                 stderr="error",
@@ -92,6 +96,7 @@ class FakeProjectVerifier(ProjectVerifier):
 
 # -- TESTS --
 
+
 def test_command_dataclass_immutability_and_env_protection() -> None:
     original_env = {"A": "1"}
     cmd = Command(
@@ -106,6 +111,10 @@ def test_command_dataclass_immutability_and_env_protection() -> None:
     original_env["A"] = "2"
     assert cmd.env is not None
     assert cmd.env["A"] == "1"
+
+    # Attempting to mutate exposed env should fail
+    with pytest.raises(TypeError):
+        cmd.env["A"] = "3"  # type: ignore[index]
 
     with pytest.raises(ValueError, match="Timeout must be positive"):
         Command(argv=["ls"], cwd=Path("/tmp"), timeout=-1.0)

@@ -1,11 +1,14 @@
 """
 Command execution port for Django-Start 2.0.
 
-Provides an isolated boundary for safely executing subprocesses without shell injection.
+Provides an isolated boundary for safely executing subprocesses
+without shell injection.
 """
+
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Protocol
 
 
@@ -13,9 +16,11 @@ from typing import Protocol
 class Command:
     """
     Immutable representation of an external command to execute.
-    
-    String interpolation and shell execution are strictly forbidden by architecture.
+
+    String interpolation and shell execution are strictly forbidden
+    by architecture.
     """
+
     argv: tuple[str, ...]
     cwd: Path
     env: Mapping[str, str] | None
@@ -31,8 +36,8 @@ class Command:
         object.__setattr__(self, "argv", tuple(argv))
         object.__setattr__(self, "cwd", cwd)
 
-        # Defensively copy the environment dictionary to prevent caller mutations
-        safe_env = dict(env) if env is not None else None
+        # Defensively copy and freeze the environment dictionary
+        safe_env = MappingProxyType(dict(env)) if env is not None else None
         object.__setattr__(self, "env", safe_env)
 
         if timeout is not None and timeout <= 0:
@@ -44,9 +49,10 @@ class Command:
 class CommandResult:
     """
     Immutable representation of a successful command execution result.
-    
+
     Failures are propagated via CommandExecutionError, not via this class.
     """
+
     returncode: int
     stdout: str
     stderr: str
@@ -55,7 +61,7 @@ class CommandResult:
 class CommandRunner(Protocol):
     """
     Port protocol for executing external commands.
-    
+
     Implementations must raise CommandExecutionError on non-zero exit codes.
     """
 

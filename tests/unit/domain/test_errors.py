@@ -26,15 +26,18 @@ def test_error_hierarchy() -> None:
 
 
 def test_command_execution_error_attributes() -> None:
-    """Ensure CommandExecutionError stores structured diagnostic information."""
+    """Ensure CommandExecutionError stores structured
+    diagnostic information."""
     error = CommandExecutionError(
         message="Command failed",
+        argv=["pytest", "fail"],
         returncode=1,
         stdout="out",
         stderr="err",
     )
 
     assert str(error) == "Command failed"
+    assert error.argv == ("pytest", "fail")
     assert error.returncode == 1
     assert error.stdout == "out"
     assert error.stderr == "err"

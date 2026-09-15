@@ -1,4 +1,5 @@
 """Tests for validation and version policies."""
+
 from datetime import date
 
 import pytest
@@ -6,6 +7,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 from django_start.domain.errors import (
+    ConfigurationError,
     InvalidIdentifierError,
     UnsupportedVersionError,
 )
@@ -28,7 +30,7 @@ from django_start.domain.policies import (
         ("my-project", False),
         ("123app", False),
         ("class", False),  # keyword
-        ("def", False),    # keyword
+        ("def", False),  # keyword
         ("hello world", False),
     ],
 )
@@ -42,7 +44,10 @@ def test_validate_identifier_success() -> None:
 
 
 def test_validate_identifier_failure() -> None:
-    with pytest.raises(InvalidIdentifierError, match="'my-project' is not a valid Python identifier"):
+    with pytest.raises(
+        InvalidIdentifierError,
+        match="'my-project' is not a valid Python identifier",
+    ):
         validate_identifier("my-project")
 
 
@@ -115,7 +120,10 @@ def test_version_policy_resolve_exact_version_string() -> None:
 
 def test_version_policy_resolve_unknown() -> None:
     policy = VersionPolicy(create_test_registry())
-    with pytest.raises(UnsupportedVersionError, match="Unsupported framework track or version: '4.2'"):
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="Unsupported framework track or version: '4.2'",
+    ):
         policy.resolve_framework("4.2")
 
 
@@ -133,7 +141,9 @@ def test_version_policy_no_lts_fallback() -> None:
         )
     )
     policy = VersionPolicy(registry)
-    with pytest.raises(UnsupportedVersionError, match="No LTS releases available"):
+    with pytest.raises(
+        UnsupportedVersionError, match="No LTS releases available"
+    ):
         policy.resolve_framework("lts")
 
 
@@ -151,9 +161,11 @@ def test_version_policy_no_non_lts_latest_fallback() -> None:
         )
     )
     policy = VersionPolicy(registry)
-    # latest should fallback to the highest version overall if no non-LTS exist
-    release = policy.resolve_framework("latest")
-    assert release.series == "5.2"
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="No latest feature release available in the registry.",
+    ):
+        policy.resolve_framework("latest")
 
 
 def test_validate_python_compatibility_success() -> None:
@@ -163,6 +175,7 @@ def test_validate_python_compatibility_success() -> None:
     # 6.1 requires >=3.12
     policy.validate_python_compatibility("3.12.0", release)
     policy.validate_python_compatibility("3.13.1", release)
+    policy.validate_python_compatibility("3.14.0", release)
 
 
 def test_validate_python_compatibility_failure() -> None:
@@ -170,8 +183,19 @@ def test_validate_python_compatibility_failure() -> None:
     release = policy.resolve_framework("2028.0")
 
     # 2028.0 requires >=3.14, providing 3.13 should fail
-    with pytest.raises(UnsupportedVersionError, match="does not satisfy Django 2028.0 requirement"):
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="does not satisfy Django 2028.0 requirement",
+    ):
         policy.validate_python_compatibility("3.13.0", release)
+
+    release_61 = policy.resolve_framework("6.1")
+    # 3.15 is not supported by Django-Start
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="Django-Start 2.0 requires Python",
+    ):
+        policy.validate_python_compatibility("3.15.0", release_61)
 
 
 def test_validate_python_global_minimum_failure() -> None:
@@ -179,8 +203,21 @@ def test_validate_python_global_minimum_failure() -> None:
     release = policy.resolve_framework("5.2")  # 5.2 in our test says >=3.10
 
     # But Django-Start 2.0 globally requires >=3.12
-    with pytest.raises(UnsupportedVersionError, match="Django-Start 2.0 requires Python >= 3.12"):
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="Django-Start 2.0 requires Python",
+    ):
         policy.validate_python_compatibility("3.11.0", release)
+
+
+def test_validate_python_invalid_version() -> None:
+    policy = VersionPolicy(create_test_registry())
+    release = policy.resolve_framework("6.1")
+    with pytest.raises(
+        UnsupportedVersionError,
+        match="Invalid host Python version: 'not-a-version'",
+    ):
+        policy.validate_python_compatibility("not-a-version", release)
 
 
 def test_is_supported_date() -> None:
@@ -204,5 +241,7 @@ def test_is_supported_no_date() -> None:
         is_lts=False,
     )
 
-    # Should always return True if eol_date is None
-    assert policy.is_supported(release, date(2099, 1, 1)) is True
+    with pytest.raises(
+        ConfigurationError, match="Support horizon for 9.9 is unknown."
+    ):
+        policy.is_supported(release, date(2099, 1, 1))
