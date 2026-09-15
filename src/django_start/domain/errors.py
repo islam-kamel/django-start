@@ -40,7 +40,39 @@ class ProjectConflictError(DjangoStartError):
     pass
 
 
-class CommandExecutionError(DjangoStartError):
+class CommandError(DjangoStartError):
+    """Base exception for all external command execution failures."""
+
+    pass
+
+
+class CommandStartError(CommandError):
+    """Raised when an external command cannot be started (e.g., OS errors)."""
+
+    def __init__(self, message: str, argv: Sequence[str]) -> None:
+        super().__init__(message)
+        self.argv = tuple(argv)
+
+
+class CommandTimeoutError(CommandError):
+    """Raised when an external command times out."""
+
+    def __init__(
+        self,
+        message: str,
+        argv: Sequence[str],
+        timeout: float,
+        stdout: str,
+        stderr: str,
+    ) -> None:
+        super().__init__(message)
+        self.argv = tuple(argv)
+        self.timeout = timeout
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+class CommandExecutionError(CommandError):
     """Raised when an external command exits with a non-zero status."""
 
     def __init__(
@@ -56,6 +88,15 @@ class CommandExecutionError(DjangoStartError):
         self.returncode = returncode
         self.stdout = stdout
         self.stderr = stderr
+
+
+class FileSystemError(DjangoStartError):
+    """Raised when a safe filesystem operation fails."""
+
+    def __init__(self, message: str, operation: str, path: str) -> None:
+        super().__init__(message)
+        self.operation = operation
+        self.path = path
 
 
 class EnvironmentCreationError(DjangoStartError):
