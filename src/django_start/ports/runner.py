@@ -33,7 +33,19 @@ class Command:
         env: Mapping[str, str] | None = None,
         timeout: float | None = 120.0,
     ) -> None:
-        object.__setattr__(self, "argv", tuple(argv))
+        argv_tuple = tuple(argv)
+        if not argv_tuple:
+            from django_start.domain.errors import ConfigurationError
+
+            raise ConfigurationError("Command argv cannot be empty")
+        if not argv_tuple[0]:
+            from django_start.domain.errors import ConfigurationError
+
+            raise ConfigurationError(
+                "Command executable (argv[0]) cannot be empty"
+            )
+
+        object.__setattr__(self, "argv", argv_tuple)
         object.__setattr__(self, "cwd", cwd)
 
         # Defensively copy and freeze the environment dictionary

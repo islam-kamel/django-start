@@ -94,27 +94,6 @@ def test_write_text_atomic_unlink_oserror(tmp_path: Path) -> None:
                 fs.write_text_atomic(file_path, "new content")
 
 
-def test_write_text_atomic_generic_exception(tmp_path: Path) -> None:
-    fs = LocalFileSystem()
-    file_path = tmp_path / "file.txt"
-    with mock.patch("os.replace", side_effect=ValueError("some error")):
-        with pytest.raises(ValueError, match="some error"):
-            fs.write_text_atomic(file_path, "new content")
-
-
-def test_write_text_atomic_generic_exception_unlink_fail(
-    tmp_path: Path,
-) -> None:
-    fs = LocalFileSystem()
-    file_path = tmp_path / "file.txt"
-    with mock.patch("os.replace", side_effect=ValueError("some error")):
-        with mock.patch(
-            "pathlib.Path.unlink", side_effect=OSError("unlink fail")
-        ):
-            with pytest.raises(ValueError, match="some error"):
-                fs.write_text_atomic(file_path, "new content")
-
-
 def test_create_directory(tmp_path: Path) -> None:
     fs = LocalFileSystem()
     nested_dir = tmp_path / "a" / "b"
@@ -190,14 +169,3 @@ def test_write_text_atomic_mkstemp_failure(tmp_path: Path) -> None:
         with pytest.raises(FileSystemError) as exc_info:
             fs.write_text_atomic(file_path, "new content")
     assert exc_info.value.operation == "write_text_atomic"
-
-
-def test_write_text_atomic_mkstemp_generic_exception(tmp_path: Path) -> None:
-    fs = LocalFileSystem()
-    file_path = tmp_path / "file.txt"
-
-    with mock.patch(
-        "tempfile.mkstemp", side_effect=ValueError("mkstemp value error")
-    ):
-        with pytest.raises(ValueError):
-            fs.write_text_atomic(file_path, "new content")

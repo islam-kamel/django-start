@@ -69,23 +69,17 @@ class LocalFileSystem(FileSystem):
 
             os.replace(tmp_path, path)
         except OSError as exc:
-            if tmp_path and tmp_path.exists():
-                try:
-                    tmp_path.unlink()
-                except OSError:
-                    pass
             raise FileSystemError(
                 f"Failed atomic write: {exc}",
                 operation="write_text_atomic",
                 path=str(path),
             ) from exc
-        except Exception:
+        finally:
             if tmp_path and tmp_path.exists():
                 try:
                     tmp_path.unlink()
                 except OSError:
                     pass
-            raise
 
     def create_directory(self, path: Path) -> None:
         try:

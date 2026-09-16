@@ -97,7 +97,12 @@ def test_create_cleans_up_on_failure_rmtree_oserror(tmp_path: Path) -> None:
         mock_create.side_effect = side_effect_create
 
         with mock.patch("shutil.rmtree", side_effect=OSError("rm fail")):
-            with pytest.raises(EnvironmentCreationError):
+            expected_msg = (
+                r"Failed to create virtual environment: fail\. "
+                r"Cleanup also failed, target directory may still "
+                r"exist: rm fail"
+            )
+            with pytest.raises(EnvironmentCreationError, match=expected_msg):
                 manager.create(target)
 
 

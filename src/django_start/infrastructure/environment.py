@@ -51,14 +51,22 @@ class VenvEnvironmentManager(EnvironmentManager):
         except Exception as exc:
             # If the creation fails partway, clean up the partially
             # created target
+            cleanup_failed = False
+            cleanup_exc = None
             if target_dir.exists():
                 try:
                     shutil.rmtree(target_dir)
-                except OSError:
-                    pass
-            raise EnvironmentCreationError(
-                f"Failed to create virtual environment: {exc}"
-            ) from exc
+                except OSError as err:
+                    cleanup_failed = True
+                    cleanup_exc = err
+
+            msg = f"Failed to create virtual environment: {exc}"
+            if cleanup_failed:
+                msg += (
+                    ". Cleanup also failed, target directory may still "
+                    f"exist: {cleanup_exc}"
+                )
+            raise EnvironmentCreationError(msg) from exc
 
         return _get_env_paths(target_dir, is_windows=(os.name == "nt"))
 

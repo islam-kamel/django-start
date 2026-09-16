@@ -119,6 +119,19 @@ def test_command_dataclass_immutability_and_env_protection() -> None:
     with pytest.raises(ValueError, match="Timeout must be positive"):
         Command(argv=["ls"], cwd=Path("/tmp"), timeout=-1.0)
 
+    from django_start.domain.errors import ConfigurationError
+
+    with pytest.raises(
+        ConfigurationError, match="Command argv cannot be empty"
+    ):
+        Command(argv=[], cwd=Path("/tmp"))
+
+    with pytest.raises(
+        ConfigurationError,
+        match="Command executable \\(argv\\[0\\]\\) cannot be empty",
+    ):
+        Command(argv=["", "arg"], cwd=Path("/tmp"))
+
 
 def test_command_runner_contract() -> None:
     runner = FakeCommandRunner()

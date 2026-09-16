@@ -20,17 +20,6 @@ class SubprocessCommandRunner(CommandRunner):
     """
 
     def run(self, command: Command) -> CommandResult:
-        if not command.argv:
-            raise CommandStartError(
-                "Command argv must contain at least one element.",
-                argv=command.argv,
-            )
-        if not command.argv[0]:
-            raise CommandStartError(
-                "Command executable (argv[0]) must not be empty.",
-                argv=command.argv,
-            )
-
         try:
             result = subprocess.run(
                 command.argv,
