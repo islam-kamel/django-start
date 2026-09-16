@@ -331,7 +331,7 @@ def _parse_dependencies(value: object) -> tuple[str, ...]:
 def _has_upper_bound(specifier: SpecifierSet) -> bool:
     """Check if a specifier set contains an upper bound.
 
-    An upper bound is any constraint using ``<``, ``<=``, ``!=``,
+    An upper bound is any constraint using ``<``, ``<=``,
     ``==``, or ``~=`` (compatible release, which implies an upper
     bound on the next major/minor).
     """

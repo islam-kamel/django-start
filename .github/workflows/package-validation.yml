@@ -62,6 +62,26 @@ jobs:
           echo "Installed wheel version: $WHEEL_VER"
           echo "WHEEL_VER=$WHEEL_VER" >> $GITHUB_ENV
 
+          WORKSPACE_DIR=$(pwd)
+          mkdir -p /tmp/smoke
+          cat << 'EOF' > /tmp/smoke/test_recipes.py
+          from django_start.infrastructure.builtin_recipes import BuiltinRecipeProvider
+          from django_start.domain.config import Profile
+          from django_start.domain.policies import BUILTIN_REGISTRY
+
+          provider = BuiltinRecipeProvider()
+
+          metadata = provider.list_metadata()
+          assert len(metadata) == 4
+
+          release = BUILTIN_REGISTRY.releases[0]
+          bundle = provider.get(Profile.STANDARD, release)
+
+          assert bundle.templates
+          print("installed wheel recipe provider smoke  PASS")
+          EOF
+          cd /tmp/smoke && "$WORKSPACE_DIR/test-env-wheel/bin/python" test_recipes.py
+
       - name: Test SDist Installation
         run: |
           python -m venv test-env-sdist
@@ -76,3 +96,23 @@ jobs:
             echo "Error: Wheel version (${{ env.WHEEL_VER }}) and sdist version ($SDIST_VER) do not match."
             exit 1
           fi
+
+          WORKSPACE_DIR=$(pwd)
+          mkdir -p /tmp/smoke
+          cat << 'EOF' > /tmp/smoke/test_recipes.py
+          from django_start.infrastructure.builtin_recipes import BuiltinRecipeProvider
+          from django_start.domain.config import Profile
+          from django_start.domain.policies import BUILTIN_REGISTRY
+
+          provider = BuiltinRecipeProvider()
+
+          metadata = provider.list_metadata()
+          assert len(metadata) == 4
+
+          release = BUILTIN_REGISTRY.releases[0]
+          bundle = provider.get(Profile.STANDARD, release)
+
+          assert bundle.templates
+          print("installed sdist recipe provider smoke  PASS")
+          EOF
+          cd /tmp/smoke && "$WORKSPACE_DIR/test-env-sdist/bin/python" test_recipes.py
