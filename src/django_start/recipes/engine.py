@@ -28,29 +28,37 @@ from django_start.recipes.compatibility import (
 
 # The complete set of recognized __DJSTART_*__ tokens.
 # Unknown tokens cause rendering failure.
-_REGISTERED_TOKENS: frozenset[str] = frozenset({
-    "__DJSTART_PROJECT_NAME__",
-    "__DJSTART_SECRET_KEY_PY__",
-    "__DJSTART_APP_NAME__",
-    "__DJSTART_APP_CONFIG_CLASS__",
-    "__DJSTART_INSTALLED_APPS__",
-    "__DJSTART_APP_URLPATTERNS__",
-    "__DJSTART_DJANGO_VERSION_COMMENT__",
-    "__DJSTART_DOCS_VERSION__",
-})
+_REGISTERED_TOKENS: frozenset[str] = frozenset(
+    {
+        "__DJSTART_PROJECT_NAME__",
+        "__DJSTART_SECRET_KEY_PY__",
+        "__DJSTART_APP_NAME__",
+        "__DJSTART_APP_CONFIG_CLASS__",
+        "__DJSTART_INSTALLED_APPS__",
+        "__DJSTART_APP_URLPATTERNS__",
+        "__DJSTART_DJANGO_VERSION_COMMENT__",
+        "__DJSTART_DOCS_VERSION__",
+    }
+)
 
 # Pattern to find all __DJSTART_*__ tokens in content
 _TOKEN_PATTERN = re.compile(r"__DJSTART_[A-Z_]+__")
 
 # Engine-owned output paths that recipes must not collide with
-_ENGINE_OWNED_PATHS: frozenset[PurePosixPath] = frozenset({
-    PurePosixPath("requirements.txt"),
-})
+_ENGINE_OWNED_PATHS: frozenset[PurePosixPath] = frozenset(
+    {
+        PurePosixPath("requirements.txt"),
+    }
+)
 
 # Unsafe path components
-_UNSAFE_COMPONENTS: frozenset[str] = frozenset({
-    "..", ".venv", ".git",
-})
+_UNSAFE_COMPONENTS: frozenset[str] = frozenset(
+    {
+        "..",
+        ".venv",
+        ".git",
+    }
+)
 
 
 def _app_name_to_config_class(app_name: str) -> str:
@@ -91,9 +99,7 @@ class ControlledTemplateScaffoldEngine:
     engine-owned paths raise ``ConfigurationError``.
     """
 
-    def render(
-        self, request: ScaffoldRequest
-    ) -> ScaffoldPlan:
+    def render(self, request: ScaffoldRequest) -> ScaffoldPlan:
         """Render a scaffold plan from a request.
 
         Args:
@@ -134,9 +140,7 @@ class ControlledTemplateScaffoldEngine:
 
         # 3a. Render project-level templates
         for tmpl in project_templates:
-            rendered = self._render_template(
-                tmpl, context
-            )
+            rendered = self._render_template(tmpl, context)
             rendered_files.append(rendered)
 
         # 3b. Expand app-scoped templates for each app
@@ -149,9 +153,7 @@ class ControlledTemplateScaffoldEngine:
                 ),
             }
             for tmpl in app_templates:
-                rendered = self._render_template(
-                    tmpl, app_context
-                )
+                rendered = self._render_template(tmpl, app_context)
                 rendered_files.append(rendered)
 
         # 4. Build requirements.txt
@@ -159,9 +161,7 @@ class ControlledTemplateScaffoldEngine:
         req_content = "\n".join(requirements) + "\n"
         rendered_files.append(
             RenderedFile(
-                relative_path=PurePosixPath(
-                    "requirements.txt"
-                ),
+                relative_path=PurePosixPath("requirements.txt"),
                 content=req_content,
             )
         )
@@ -188,9 +188,7 @@ class ControlledTemplateScaffoldEngine:
 
     # --- Context Construction ---
 
-    def _build_context(
-        self, request: ScaffoldRequest
-    ) -> dict[str, str]:
+    def _build_context(self, request: ScaffoldRequest) -> dict[str, str]:
         """Build the token substitution context.
 
         All values are explicit and deterministic. The engine
@@ -217,17 +215,11 @@ class ControlledTemplateScaffoldEngine:
             "__DJSTART_DJANGO_VERSION_COMMENT__": (
                 f"Django {request.release.series}"
             ),
-            "__DJSTART_DOCS_VERSION__": (
-                request.release.series
-            ),
+            "__DJSTART_DOCS_VERSION__": (request.release.series),
             # App-scoped tokens are set per-app, not here
-            "__DJSTART_APP_NAME__": "",
-            "__DJSTART_APP_CONFIG_CLASS__": "",
         }
 
-    def _build_installed_apps(
-        self, apps: tuple[AppConfig, ...]
-    ) -> str:
+    def _build_installed_apps(self, apps: tuple[AppConfig, ...]) -> str:
         """Build the INSTALLED_APPS token value.
 
         Generates lines like:
@@ -236,17 +228,11 @@ class ControlledTemplateScaffoldEngine:
         """
         lines: list[str] = []
         for app in apps:
-            config_class = _app_name_to_config_class(
-                app.name
-            )
-            lines.append(
-                f"    '{app.name}.apps.{config_class}',"
-            )
+            config_class = _app_name_to_config_class(app.name)
+            lines.append(f"    '{app.name}.apps.{config_class}',")
         return "\n".join(lines)
 
-    def _build_url_patterns(
-        self, apps: tuple[AppConfig, ...]
-    ) -> str:
+    def _build_url_patterns(self, apps: tuple[AppConfig, ...]) -> str:
         """Build the URL patterns token value.
 
         Generates lines like:
@@ -260,10 +246,7 @@ class ControlledTemplateScaffoldEngine:
                 prefix = ""
             else:
                 prefix = f"{app.name}/"
-            lines.append(
-                f"    path('{prefix}', "
-                f"include('{app.name}.urls')),"
-            )
+            lines.append(f"    path('{prefix}', include('{app.name}.urls')),")
         return "\n".join(lines)
 
     # --- Template Rendering ---
@@ -286,9 +269,7 @@ class ControlledTemplateScaffoldEngine:
         path_str = str(template.relative_path)
 
         # Render path tokens first
-        rendered_path = self._substitute_tokens(
-            path_str, context, "path"
-        )
+        rendered_path = self._substitute_tokens(path_str, context, "path")
 
         # Render content tokens
         rendered_content = self._substitute_tokens(
@@ -296,9 +277,7 @@ class ControlledTemplateScaffoldEngine:
         )
 
         # Verify no unresolved __DJSTART_*__ tokens remain
-        _check_unresolved_tokens(
-            rendered_path, rendered_content
-        )
+        _check_unresolved_tokens(rendered_path, rendered_content)
 
         return RenderedFile(
             relative_path=PurePosixPath(rendered_path),
@@ -315,12 +294,12 @@ class ControlledTemplateScaffoldEngine:
 
         Unknown tokens raise ConfigurationError immediately.
         """
+
         def replacer(match: re.Match[str]) -> str:
             token = match.group(0)
             if token not in _REGISTERED_TOKENS:
                 raise ConfigurationError(
-                    f"Unknown template token {token!r} in "
-                    f"{source_desc!r}"
+                    f"Unknown template token {token!r} in {source_desc!r}"
                 )
             if token not in context:
                 raise ConfigurationError(
@@ -333,9 +312,7 @@ class ControlledTemplateScaffoldEngine:
 
     # --- Requirements ---
 
-    def _build_requirements(
-        self, request: ScaffoldRequest
-    ) -> tuple[str, ...]:
+    def _build_requirements(self, request: ScaffoldRequest) -> tuple[str, ...]:
         """Build the bounded requirements manifest.
 
         Django requirement comes first, derived from the
@@ -364,14 +341,15 @@ def _validate_rendered_path(path: PurePosixPath) -> None:
     path_str = str(path)
 
     if not path_str or path_str.isspace():
+        raise ConfigurationError("Rendered file path must not be empty")
+    if path_str == ".":
         raise ConfigurationError(
-            "Rendered file path must not be empty"
+            "Rendered file path must not be the logical root '.'"
         )
 
     if path.is_absolute():
         raise ConfigurationError(
-            f"Rendered file path must be relative, "
-            f"got: {path_str!r}"
+            f"Rendered file path must be relative, got: {path_str!r}"
         )
 
     for part in path.parts:
@@ -386,8 +364,7 @@ def _validate_rendered_path(path: PurePosixPath) -> None:
     normalized = PurePosixPath(*path.parts)
     if str(normalized).startswith(".."):
         raise ConfigurationError(
-            f"Rendered file path escapes project root: "
-            f"{path_str!r}"
+            f"Rendered file path escapes project root: {path_str!r}"
         )
 
 
@@ -412,9 +389,7 @@ def _detect_duplicates(
         seen[rf.relative_path] = i
 
 
-def _check_unresolved_tokens(
-    path: str, content: str
-) -> None:
+def _check_unresolved_tokens(path: str, content: str) -> None:
     """Verify no __DJSTART_*__ tokens remain after rendering."""
     for text, label in [
         (path, "path"),
@@ -424,6 +399,5 @@ def _check_unresolved_tokens(
         if remaining:
             tokens = ", ".join(sorted(set(remaining)))
             raise ConfigurationError(
-                f"Unresolved template tokens in {label}: "
-                f"{tokens}"
+                f"Unresolved template tokens in {label}: {tokens}"
             )

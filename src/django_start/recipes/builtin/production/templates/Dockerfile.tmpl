@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+RUN DJANGO_SETTINGS_MODULE=__DJSTART_PROJECT_NAME__.settings.local python manage.py collectstatic --noinput
 
 EXPOSE 8000
 

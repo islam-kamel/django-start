@@ -24,29 +24,33 @@ from django_start.domain.recipes import (
 
 # --- Schema Definition ---
 
-_REQUIRED_FIELDS: frozenset[str] = frozenset({
-    "recipe_schema_version",
-    "recipe_version",
-    "name",
-    "description",
-    "python_requires",
-    "django_requires",
-    "django_start_requires",
-    "dependencies",
-    "template_dir",
-})
+_REQUIRED_FIELDS: frozenset[str] = frozenset(
+    {
+        "recipe_schema_version",
+        "recipe_version",
+        "name",
+        "description",
+        "python_requires",
+        "django_requires",
+        "django_start_requires",
+        "dependencies",
+        "template_dir",
+    }
+)
 
-_FORBIDDEN_FIELDS: frozenset[str] = frozenset({
-    "post_generate_hooks",
-    "pre_generate_hooks",
-    "shell_commands",
-    "python_hooks",
-    "commands",
-    "callbacks",
-    "hooks",
-    "scripts",
-    "supported_tracks",
-})
+_FORBIDDEN_FIELDS: frozenset[str] = frozenset(
+    {
+        "post_generate_hooks",
+        "pre_generate_hooks",
+        "shell_commands",
+        "python_hooks",
+        "commands",
+        "callbacks",
+        "hooks",
+        "scripts",
+        "supported_tracks",
+    }
+)
 
 # Canonical normalization per PEP 503
 _NORMALIZE_RE = re.compile(r"[-_.]+")
@@ -78,14 +82,11 @@ def parse_recipe_metadata(raw_json: str) -> RecipeMetadata:
     try:
         data = json.loads(raw_json)
     except json.JSONDecodeError as exc:
-        raise ConfigurationError(
-            f"Invalid recipe JSON: {exc}"
-        ) from exc
+        raise ConfigurationError(f"Invalid recipe JSON: {exc}") from exc
 
     if not isinstance(data, dict):
         raise ConfigurationError(
-            "Recipe JSON must be an object, "
-            f"got {type(data).__name__}"
+            f"Recipe JSON must be an object, got {type(data).__name__}"
         )
 
     _reject_forbidden_fields(data)
@@ -93,9 +94,7 @@ def parse_recipe_metadata(raw_json: str) -> RecipeMetadata:
     _require_all_fields(data)
 
     schema_version = _parse_schema_version(data["recipe_schema_version"])
-    recipe_version = _parse_version(
-        data["recipe_version"], "recipe_version"
-    )
+    recipe_version = _parse_version(data["recipe_version"], "recipe_version")
     name = _parse_name(data["name"])
     description = _parse_description(data["description"])
     python_requires = _parse_specifier(
@@ -155,9 +154,7 @@ def _require_all_fields(data: dict[str, object]) -> None:
     missing = _REQUIRED_FIELDS - set(data.keys())
     if missing:
         names = ", ".join(sorted(missing))
-        raise ConfigurationError(
-            f"Recipe is missing required fields: {names}"
-        )
+        raise ConfigurationError(f"Recipe is missing required fields: {names}")
 
 
 def _parse_schema_version(value: object) -> str:
@@ -185,8 +182,7 @@ def _parse_version(value: object, field: str) -> Version:
     """Parse a PEP 440 version string."""
     if not isinstance(value, str):
         raise ConfigurationError(
-            f"{field} must be a string, "
-            f"got {type(value).__name__}"
+            f"{field} must be a string, got {type(value).__name__}"
         )
     try:
         return Version(value)
@@ -211,8 +207,7 @@ def _parse_description(value: object) -> str:
     """Parse the recipe description."""
     if not isinstance(value, str):
         raise ConfigurationError(
-            "description must be a string, "
-            f"got {type(value).__name__}"
+            f"description must be a string, got {type(value).__name__}"
         )
     return value
 
@@ -221,8 +216,7 @@ def _parse_specifier(value: object, field: str) -> SpecifierSet:
     """Parse a PEP 440 specifier set string."""
     if not isinstance(value, str):
         raise ConfigurationError(
-            f"{field} must be a string, "
-            f"got {type(value).__name__}"
+            f"{field} must be a string, got {type(value).__name__}"
         )
     try:
         return SpecifierSet(value)
@@ -236,13 +230,10 @@ def _parse_template_dir(value: object) -> PurePosixPath:
     """Parse and validate the template directory path."""
     if not isinstance(value, str):
         raise ConfigurationError(
-            "template_dir must be a string, "
-            f"got {type(value).__name__}"
+            f"template_dir must be a string, got {type(value).__name__}"
         )
     if not value.strip():
-        raise ConfigurationError(
-            "template_dir must not be empty"
-        )
+        raise ConfigurationError("template_dir must not be empty")
 
     path = PurePosixPath(value)
 
@@ -270,8 +261,7 @@ def _parse_dependencies(value: object) -> tuple[str, ...]:
     """
     if not isinstance(value, list):
         raise ConfigurationError(
-            "dependencies must be an array, "
-            f"got {type(value).__name__}"
+            f"dependencies must be an array, got {type(value).__name__}"
         )
 
     deps: list[str] = []
@@ -286,9 +276,7 @@ def _parse_dependencies(value: object) -> tuple[str, ...]:
 
         dep_str = item.strip()
         if not dep_str:
-            raise ConfigurationError(
-                f"dependencies[{i}] must not be empty"
-            )
+            raise ConfigurationError(f"dependencies[{i}] must not be empty")
 
         if dep_str.startswith("-"):
             raise ConfigurationError(
@@ -307,8 +295,7 @@ def _parse_dependencies(value: object) -> tuple[str, ...]:
         # Reject direct URL dependencies
         if req.url:
             raise ConfigurationError(
-                f"dependencies[{i}] must not use a direct URL: "
-                f"{dep_str!r}"
+                f"dependencies[{i}] must not use a direct URL: {dep_str!r}"
             )
 
         # Reject unbounded dependencies
@@ -348,7 +335,7 @@ def _has_upper_bound(specifier: SpecifierSet) -> bool:
     ``==``, or ``~=`` (compatible release, which implies an upper
     bound on the next major/minor).
     """
-    upper_ops = {"<", "<=", "!=", "==", "~="}
+    upper_ops = {"<", "<=", "==", "~="}
     for spec in specifier:
         if spec.operator in upper_ops:
             return True

@@ -8,6 +8,7 @@ Phase 5 supports built-in package recipes only — no arbitrary
 external recipe paths, Git URLs, or entry-point plugins.
 """
 
+import importlib.resources.abc
 from importlib import resources as importlib_resources
 from pathlib import PurePosixPath
 from typing import final
@@ -79,17 +80,11 @@ class BuiltinRecipeProvider:
                 the baseline is missing, or assets are invalid.
         """
         metadata = self._load_metadata(profile)
-        baseline_templates = self._load_baseline_templates(
-            release
-        )
-        profile_templates = self._load_profile_templates(
-            profile, metadata
-        )
+        baseline_templates = self._load_baseline_templates(release)
+        profile_templates = self._load_profile_templates(profile, metadata)
 
         # Merge: profile templates override baseline at same path
-        merged = self._merge_templates(
-            baseline_templates, profile_templates
-        )
+        merged = self._merge_templates(baseline_templates, profile_templates)
 
         return RecipeBundle(
             metadata=metadata,
@@ -103,16 +98,11 @@ class BuiltinRecipeProvider:
             Tuple of ``RecipeMetadata`` in canonical profile order
             (standard, minimal, api, production).
         """
-        return tuple(
-            self._load_metadata(profile)
-            for profile in Profile
-        )
+        return tuple(self._load_metadata(profile) for profile in Profile)
 
     # --- Internal Loading ---
 
-    def _load_metadata(
-        self, profile: Profile
-    ) -> RecipeMetadata:
+    def _load_metadata(self, profile: Profile) -> RecipeMetadata:
         """Load and parse recipe.json for a profile."""
         anchor = _resource_anchor()
         try:
@@ -130,7 +120,13 @@ class BuiltinRecipeProvider:
                 f"'{profile.value}': {exc}"
             ) from exc
 
-        return parse_recipe_metadata(raw_json)
+        metadata = parse_recipe_metadata(raw_json)
+        if metadata.name != profile.value:
+            raise ConfigurationError(
+                f"Recipe identity mismatch: expected '{profile.value}', "
+                f"got '{metadata.name}'"
+            )
+        return metadata
 
     def _load_baseline_templates(
         self, release: FrameworkRelease
@@ -146,9 +142,9 @@ class BuiltinRecipeProvider:
 
         anchor = _resource_anchor()
         try:
-            base_ref = importlib_resources.files(
-                anchor
-            ).joinpath("base", baseline_dir)
+            base_ref = importlib_resources.files(anchor).joinpath(
+                "base", baseline_dir
+            )
         except (
             FileNotFoundError,
             ModuleNotFoundError,
@@ -169,9 +165,7 @@ class BuiltinRecipeProvider:
         """Load profile-specific template overlays."""
         anchor = _resource_anchor()
         try:
-            tmpl_ref = importlib_resources.files(
-                anchor
-            ).joinpath(
+            tmpl_ref = importlib_resources.files(anchor).joinpath(
                 profile.value,
                 str(metadata.template_dir),
             )
@@ -181,15 +175,14 @@ class BuiltinRecipeProvider:
             TypeError,
         ) as exc:
             raise ConfigurationError(
-                f"Cannot access profile templates for "
-                f"'{profile.value}': {exc}"
+                f"Cannot access profile templates for '{profile.value}': {exc}"
             ) from exc
 
         return self._collect_templates(tmpl_ref, "")
 
     def _collect_templates(
         self,
-        root: object,
+        root: importlib.resources.abc.Traversable,
         prefix: str,
     ) -> tuple[RecipeTemplate, ...]:
         """Recursively collect .tmpl files from a resource tree.
@@ -200,26 +193,24 @@ class BuiltinRecipeProvider:
           (marked as app-scoped)
         - Other paths -> kept as-is
         """
-        import importlib.resources.abc
         templates: list[RecipeTemplate] = []
-        traversable: importlib.resources.abc.Traversable = root  # type: ignore[assignment]
 
         try:
             children = sorted(
-                traversable.iterdir(),
+                root.iterdir(),
                 key=lambda c: c.name,
             )
-        except (AttributeError, TypeError):
-            return ()
+        except (AttributeError, TypeError, OSError) as exc:
+            raise ConfigurationError(
+                f"Cannot traverse recipe resources: {exc}"
+            ) from exc
 
         for child in children:
             child_name: str = child.name
             rel = f"{prefix}{child_name}"
 
             if child.is_dir():
-                sub = self._collect_templates(
-                    child, f"{rel}/"
-                )
+                sub = self._collect_templates(child, f"{rel}/")
                 templates.extend(sub)
             elif child_name.endswith(_TEMPLATE_SUFFIX):
                 # Strip .tmpl suffix for target filename
@@ -227,16 +218,14 @@ class BuiltinRecipeProvider:
                 target_rel = f"{prefix}{target_name}"
 
                 # Map resource prefix to logical target path
-                target_path, is_app_scoped = (
-                    _map_resource_to_target(target_rel)
+                target_path, is_app_scoped = _map_resource_to_target(
+                    target_rel
                 )
 
                 content: str = child.read_text(encoding="utf-8")
                 templates.append(
                     RecipeTemplate(
-                        relative_path=PurePosixPath(
-                            target_path
-                        ),
+                        relative_path=PurePosixPath(target_path),
                         content=content,
                         is_app_scoped=is_app_scoped,
                     )
@@ -255,20 +244,29 @@ class BuiltinRecipeProvider:
         path (controlled overlay). This is not an error — it is
         the intended composition mechanism.
         """
-        # Index baseline by path
         merged: dict[PurePosixPath, RecipeTemplate] = {}
+
+        baseline_paths: set[PurePosixPath] = set()
         for tmpl in baseline:
+            if tmpl.relative_path in baseline_paths:
+                raise ConfigurationError(
+                    f"Duplicate template in baseline layer: "
+                    f"{tmpl.relative_path}"
+                )
+            baseline_paths.add(tmpl.relative_path)
             merged[tmpl.relative_path] = tmpl
 
-        # Profile overlays replace baseline at same path
+        profile_paths: set[PurePosixPath] = set()
         for tmpl in profile:
+            if tmpl.relative_path in profile_paths:
+                raise ConfigurationError(
+                    f"Duplicate template in profile layer: "
+                    f"{tmpl.relative_path}"
+                )
+            profile_paths.add(tmpl.relative_path)
             merged[tmpl.relative_path] = tmpl
 
-        # Return sorted by path for determinism
-        return tuple(
-            merged[k]
-            for k in sorted(merged.keys(), key=str)
-        )
+        return tuple(merged[k] for k in sorted(merged.keys(), key=str))
 
 
 def _map_resource_to_target(
@@ -285,13 +283,13 @@ def _map_resource_to_target(
         Tuple of (target_path, is_app_scoped).
     """
     if resource_path.startswith(_APP_PREFIX):
-        suffix = resource_path[len(_APP_PREFIX):]
+        suffix = resource_path[len(_APP_PREFIX) :]
         return (
             f"__DJSTART_APP_NAME__/{suffix}",
             True,
         )
     if resource_path.startswith(_PROJECT_PREFIX):
-        suffix = resource_path[len(_PROJECT_PREFIX):]
+        suffix = resource_path[len(_PROJECT_PREFIX) :]
         return (
             f"__DJSTART_PROJECT_NAME__/{suffix}",
             False,

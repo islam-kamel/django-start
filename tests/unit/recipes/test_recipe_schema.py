@@ -133,3 +133,28 @@ def test_traversal_template_dir():
     data["template_dir"] = "../templates"
     with pytest.raises(ConfigurationError, match="must not contain '\\.\\.'"):
         parse_recipe_metadata(json.dumps(data))
+
+
+def test_dependency_bounding():
+    data = json.loads(VALID_JSON)
+    # foo>=1,!=2 -> rejected
+    data["dependencies"] = ["foo>=1,!=2"]
+    with pytest.raises(ConfigurationError, match="bounded upper constraint"):
+        parse_recipe_metadata(json.dumps(data))
+
+    # foo>=1,<2 -> accepted
+    data["dependencies"] = ["foo>=1,<2"]
+    parse_recipe_metadata(json.dumps(data))
+
+    # foo~=1.4 -> accepted
+    data["dependencies"] = ["foo~=1.4"]
+    parse_recipe_metadata(json.dumps(data))
+
+    # foo==1.4.2 -> accepted
+    data["dependencies"] = ["foo==1.4.2"]
+    parse_recipe_metadata(json.dumps(data))
+
+    # foo>=1 -> rejected
+    data["dependencies"] = ["foo>=1"]
+    with pytest.raises(ConfigurationError, match="bounded upper constraint"):
+        parse_recipe_metadata(json.dumps(data))

@@ -12,6 +12,37 @@ from django_start.infrastructure.builtin_recipes import BuiltinRecipeProvider
 from django_start.recipes.engine import ControlledTemplateScaffoldEngine
 
 
+def serialize_plan(plan) -> str:
+    lines = []
+    lines.append("PATHS:")
+    for rf in plan.files:
+        lines.append(f"  {rf.relative_path}")
+
+    lines.append("\nREQUIREMENTS:")
+    for req in plan.requirements:
+        lines.append(f"  {req}")
+
+    for rf in plan.files:
+        p = str(rf.relative_path)
+        if (
+            "settings" in p
+            or "urls.py" in p
+            or "requirements.txt" in p
+            or p
+            in (
+                "Dockerfile",
+                "docker-compose.yml",
+                "testproject/wsgi.py",
+                "testproject/asgi.py",
+                "manage.py",
+            )
+        ):
+            lines.append(f"\n--- {p} ---")
+            lines.append(rf.content.strip())
+
+    return "\n".join(lines) + "\n"
+
+
 @pytest.mark.parametrize(
     "profile",
     [Profile.STANDARD, Profile.MINIMAL, Profile.API, Profile.PRODUCTION],
@@ -45,28 +76,19 @@ def test_golden_generation(profile, release):
 
     plan = engine.render(request)
 
-    # Verify core files exist in the plan
-    file_paths = {str(f.relative_path) for f in plan.files}
+    actual = serialize_plan(plan)
 
-    assert "requirements.txt" in file_paths
-    assert "manage.py" in file_paths
+    golden_file = (
+        Path(__file__).parent
+        / "golden"
+        / f"{profile.value}_django_{release.series.replace('.', '_')}.golden"
+    )
+    if not golden_file.exists():
+        golden_file.write_text(actual)
+        pytest.fail(f"Golden file missing, created: {golden_file.name}")
 
-    # Every profile has a project-level urls and wsgi
-    assert "testproject/urls.py" in file_paths
-    assert "testproject/wsgi.py" in file_paths
-    assert "testproject/asgi.py" in file_paths
-
-    # Standard and minimal have settings.py, production has a package
-    if profile == Profile.PRODUCTION:
-        assert "testproject/settings/__init__.py" in file_paths
-        assert "testproject/settings/base.py" in file_paths
-        assert "testproject/settings/production.py" in file_paths
-    else:
-        assert "testproject/settings.py" in file_paths
-
-    # Core app files exist
-    assert "core/apps.py" in file_paths
-    assert "api/apps.py" in file_paths
+    expected = golden_file.read_text()
+    assert actual == expected
 
     # Compile all Python files to verify syntax (no malformed tokens)
     for rf in plan.files:
@@ -74,6 +96,4 @@ def test_golden_generation(profile, release):
             try:
                 compile(rf.content, str(rf.relative_path), "exec")
             except SyntaxError as e:
-                pytest.fail(
-                    f"Syntax error in {rf.relative_path}: {e}"
-                )
+                pytest.fail(f"Syntax error in {rf.relative_path}: {e}")

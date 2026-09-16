@@ -61,20 +61,24 @@ def test_token_replacement(base_request):
             relative_path=PurePosixPath(
                 "__DJSTART_PROJECT_NAME__/settings.py"
             ),
-            content="SECRET = __DJSTART_SECRET_KEY_PY__\n# __DJSTART_DJANGO_VERSION_COMMENT__",
+            content="SECRET = __DJSTART_SECRET_KEY_PY__\n"
+            "# __DJSTART_DJANGO_VERSION_COMMENT__",
             is_app_scoped=False,
         ),
         RecipeTemplate(
             relative_path=PurePosixPath("__DJSTART_APP_NAME__/apps.py"),
-            content="class __DJSTART_APP_CONFIG_CLASS__:\n    name = '__DJSTART_APP_NAME__'",
+            content="class __DJSTART_APP_CONFIG_CLASS__:\n"
+            "    name = '__DJSTART_APP_NAME__'",
             is_app_scoped=True,
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
 
     engine = ControlledTemplateScaffoldEngine()
@@ -121,10 +125,12 @@ def test_django_tags_preserved(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     plan = engine.render(request)
@@ -143,10 +149,12 @@ def test_unknown_token_raises(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     with pytest.raises(ConfigurationError, match="Unknown template token"):
@@ -163,23 +171,25 @@ def test_unresolved_tokens_raises(base_request, monkeypatch):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
 
     engine = ControlledTemplateScaffoldEngine()
-    
+
     # Override context building to simulate a missing replacement
     def bad_substitute(self, text, context, source_desc):
         return text
-        
-    monkeypatch.setattr(ControlledTemplateScaffoldEngine, "_substitute_tokens", bad_substitute)
 
-    with pytest.raises(
-        ConfigurationError, match="Unresolved template tokens"
-    ):
+    monkeypatch.setattr(
+        ControlledTemplateScaffoldEngine, "_substitute_tokens", bad_substitute
+    )
+
+    with pytest.raises(ConfigurationError, match="Unresolved template tokens"):
         engine.render(request)
 
 
@@ -197,10 +207,12 @@ def test_duplicate_path_raises(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     with pytest.raises(
@@ -218,10 +230,12 @@ def test_engine_owned_path_collision_raises(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     with pytest.raises(
@@ -239,10 +253,12 @@ def test_unsafe_path_components(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     with pytest.raises(ConfigurationError, match="unsafe component"):
@@ -258,11 +274,63 @@ def test_path_traversal(base_request):
         ),
     )
     import dataclasses
-    request = dataclasses.replace(base_request, 
-        recipe= RecipeBundle(
-                metadata=base_request.recipe.metadata, templates=templates
-            ),
+
+    request = dataclasses.replace(
+        base_request,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=templates
+        ),
     )
     engine = ControlledTemplateScaffoldEngine()
     with pytest.raises(ConfigurationError, match="unsafe component"):
+        engine.render(request)
+
+
+def test_app_token_in_project_template_fails(base_request):
+    from pathlib import PurePosixPath
+
+    from django_start.domain.recipes import RecipeTemplate
+
+    tmpl = RecipeTemplate(
+        relative_path=PurePosixPath("bad.txt"),
+        content="Hello __DJSTART_APP_NAME__",
+        is_app_scoped=False,
+    )
+    request = ScaffoldRequest(
+        config=base_request.config,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=(tmpl,)
+        ),
+        release=base_request.release,
+        host_python_version=base_request.host_python_version,
+        django_start_version=base_request.django_start_version,
+        secret_key="secret",
+    )
+    engine = ControlledTemplateScaffoldEngine()
+    with pytest.raises(
+        ConfigurationError, match="has no value in render context"
+    ):
+        engine.render(request)
+
+
+def test_dot_path_rejected(base_request):
+    from pathlib import PurePosixPath
+
+    from django_start.domain.recipes import RecipeTemplate
+
+    tmpl = RecipeTemplate(
+        relative_path=PurePosixPath("."), content="Hello", is_app_scoped=False
+    )
+    request = ScaffoldRequest(
+        config=base_request.config,
+        recipe=RecipeBundle(
+            metadata=base_request.recipe.metadata, templates=(tmpl,)
+        ),
+        release=base_request.release,
+        host_python_version=base_request.host_python_version,
+        django_start_version=base_request.django_start_version,
+        secret_key="secret",
+    )
+    engine = ControlledTemplateScaffoldEngine()
+    with pytest.raises(ConfigurationError, match="not be the logical root"):
         engine.render(request)

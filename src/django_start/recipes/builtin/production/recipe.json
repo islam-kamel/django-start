@@ -6,6 +6,8 @@
   "python_requires": ">=3.12,<3.15",
   "django_requires": ">=5.2.17,<6.2",
   "django_start_requires": ">=2.0.0a1,<3",
-  "dependencies": [],
+  "dependencies": [
+    "gunicorn>=26.2.0,<27"
+  ],
   "template_dir": "templates"
 }
