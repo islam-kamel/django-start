@@ -1,0 +1,16 @@
+"""
+ASGI config for __DJSTART_PROJECT_NAME__ project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/__DJSTART_DOCS_VERSION__/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '__DJSTART_PROJECT_NAME__.settings')
+
+application = get_asgi_application()

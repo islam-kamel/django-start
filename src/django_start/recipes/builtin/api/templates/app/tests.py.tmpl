@@ -1,0 +1,9 @@
+from rest_framework.test import APITestCase
+from django.urls import reverse
+
+class ExampleApiTestCase(APITestCase):
+    def test_example(self):
+        url = reverse('__DJSTART_APP_NAME__:example-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Hello from __DJSTART_APP_NAME__ api')

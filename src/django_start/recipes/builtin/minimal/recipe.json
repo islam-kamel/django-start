@@ -1,0 +1,11 @@
+{
+  "recipe_schema_version": "1.0",
+  "recipe_version": "2.0.0",
+  "name": "minimal",
+  "description": "Minimal lean Django starter without extra HTML templates, static files, or health endpoints.",
+  "python_requires": ">=3.12,<3.15",
+  "django_requires": ">=5.2.17,<6.2",
+  "django_start_requires": ">=2.0.0a1,<3",
+  "dependencies": [],
+  "template_dir": "templates"
+}

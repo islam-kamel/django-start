@@ -1,0 +1,11 @@
+from rest_framework import viewsets
+from rest_framework.response import Response
+from .serializers import ExampleSerializer
+
+class ExampleViewSet(viewsets.ViewSet):
+    """
+    A simple ViewSet for listing or retrieving items.
+    """
+    def list(self, request):
+        serializer = ExampleSerializer({"message": "Hello from __DJSTART_APP_NAME__ api"})
+        return Response(serializer.data)

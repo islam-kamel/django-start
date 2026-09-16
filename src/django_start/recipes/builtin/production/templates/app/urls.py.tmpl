@@ -1,0 +1,8 @@
+from django.urls import path
+from . import views
+
+app_name = '__DJSTART_APP_NAME__'
+
+urlpatterns = [
+    path('', views.home, name='home'),
+]

@@ -1,0 +1,11 @@
+{
+  "recipe_schema_version": "1.0",
+  "recipe_version": "2.0.0",
+  "name": "standard",
+  "description": "Full-stack Django starter with app templates, HTML templates, static assets, health endpoint, and starter test structure.",
+  "python_requires": ">=3.12,<3.15",
+  "django_requires": ">=5.2.17,<6.2",
+  "django_start_requires": ">=2.0.0a1,<3",
+  "dependencies": [],
+  "template_dir": "templates"
+}

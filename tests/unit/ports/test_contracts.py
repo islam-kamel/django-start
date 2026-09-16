@@ -11,11 +11,18 @@ from pathlib import Path
 
 import pytest
 
+from django_start.domain.config import Profile
 from django_start.domain.errors import (
     CommandExecutionError,
     DependencyInstallError,
     EnvironmentCreationError,
     VerificationError,
+)
+from django_start.domain.policies import FrameworkRelease
+from django_start.domain.recipes import (
+    RecipeBundle,
+    ScaffoldPlan,
+    ScaffoldRequest,
 )
 from django_start.ports.environment import (
     EnvironmentDetails,
@@ -23,7 +30,9 @@ from django_start.ports.environment import (
 )
 from django_start.ports.filesystem import FileSystem
 from django_start.ports.installer import InstallResult, PackageInstaller
+from django_start.ports.recipes import RecipeProvider
 from django_start.ports.runner import Command, CommandResult, CommandRunner
+from django_start.ports.scaffold import ScaffoldEngine
 from django_start.ports.verifier import ProjectVerifier
 
 # -- FAKES --
@@ -197,3 +206,27 @@ def test_project_verifier_contract() -> None:
 
     with pytest.raises(VerificationError, match="Project verification failed"):
         verifier.verify(env, Path("/fail"))
+
+
+class FakeRecipeProvider(RecipeProvider):
+    def get(self, profile: Profile, release: FrameworkRelease) -> RecipeBundle:
+        return RecipeBundle(metadata=None, templates=())  # type: ignore
+
+    def list_metadata(self) -> tuple:
+        return ()
+
+
+class FakeScaffoldEngine(ScaffoldEngine):
+    def render(self, request: ScaffoldRequest) -> ScaffoldPlan:
+        return ScaffoldPlan(files=(), requirements=())
+
+
+def test_recipe_provider_contract() -> None:
+    provider: RecipeProvider = FakeRecipeProvider()
+    assert provider.list_metadata() == ()
+
+
+def test_scaffold_engine_contract() -> None:
+    FakeScaffoldEngine()
+    # Mypy will verify structural subtyping
+    pass

@@ -108,3 +108,7 @@ check_untyped_defs = true
 
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
+"django_start.recipes.builtin" = [
+    "**/*.json",
+    "**/*.tmpl",
+]

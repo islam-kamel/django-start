@@ -1,0 +1,29 @@
+"""
+Production settings.
+"""
+
+from .base import *
+import os
+
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+
+DEBUG = False
+
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+
+# Security settings
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Database configured from environment
+# In a real app, use dj-database-url to parse DATABASE_URL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}

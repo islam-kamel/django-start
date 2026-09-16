@@ -327,21 +327,20 @@ from typing import Sequence
 
 @dataclass(frozen=True)
 class RecipeMetadata:
-    schema_version: str  # Metadata specification version (e.g. "1.0")
+    recipe_schema_version: str  # Exact protocol version (e.g. "1.0")
     recipe_version: str  # Semantic version of the recipe (e.g. "2.0.0")
     name: str  # Profile identifier (e.g. "standard", "api", "minimal", "production")
-    display_name: str  # Human-readable title
     description: str  # Comprehensive description of project archetype
     python_requires: str  # Formal Python version specifier (e.g. ">=3.12")
     django_requires: str  # Formal Django version specifier (e.g. ">=5.2")
-    supported_tracks: Sequence[str]  # e.g. ("latest", "lts")
+    django_start_requires: (
+        str  # Supported Django-Start versions (e.g. ">=2.0.0")
+    )
     dependencies: Sequence[
         str
-    ]  # Formal package specifiers (e.g. ["djangorestframework>=3.15,<4"])
+    ]  # Formal package specifiers (e.g. ["djangorestframework>=3.18.1,<3.19"])
     template_dir: str  # Relative POSIX path to template files
-    post_generate_hooks: Sequence[
-        str
-    ] = ()  # Safe internal hooks executed post-scaffolding
+    # No executable hooks (ADR-009 strictly requires declarative JSON)
 ```
 
 ---

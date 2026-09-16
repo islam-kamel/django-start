@@ -1,0 +1,12 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from . import views
+
+router = DefaultRouter()
+router.register(r'example', views.ExampleViewSet, basename='example')
+
+app_name = '__DJSTART_APP_NAME__'
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
